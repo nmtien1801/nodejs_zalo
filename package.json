@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "zalo CNM",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --exec babel-node src/server.js"
@@ -21,8 +20,12 @@
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.12.0",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
+    "pg": "^8.13.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.5",
     "sequelize-cli": "^6.6.2"
   }
 }
