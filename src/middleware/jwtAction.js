@@ -9,7 +9,7 @@ const createJwt = (payload) => {
   let token = null;
 
   try {
-    token = jwt.sign(payload, key, { expiresIn: process.env.JWT_EXPIRES_IN }); // fix lỗi thời gian lưu token # cookies
+    token = jwt.sign(payload, key, { expiresIn: process.env.JWT_EXPIRES_IN });
   } catch (error) {
     console.log(">>>>>check err token: ", error);
   }
@@ -32,7 +32,7 @@ const verifyToken = (token) => {
 
 const nonSecurePaths = [
   "/",
-  "api/login",
+  "/api/login",
   "/api/logout",
   "/api/register",
   "/api/account",
@@ -52,26 +52,23 @@ const extractToken = (req) => {
 // middleware jwt check user đã đăng nhập chưa
 const checkUserJwt = async (req, res, next) => {
   if (nonSecurePaths.includes(req.path)) return next(); // kh check middleware url (2)
-  let cookies = req.cookies;
   let tokenFromHeader = extractToken(req);
 
-  if ((cookies && cookies.access_Token) || tokenFromHeader) {
+  if (tokenFromHeader) {
     // bug vừa vào đã check quyền xác thực khi chưa login của Context
-    let access_Token =
-      cookies && cookies.access_Token ? cookies.access_Token : tokenFromHeader;
+    let access_Token = tokenFromHeader;
     let decoded = verifyToken(access_Token);
 
     if (decoded && decoded !== "TokenExpiredError") {
       req.user = decoded; // gán thêm .user(data cookie) vào req BE nhận từ FE
       req.access_Token = access_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
-      req.refresh_Token = cookies.refresh_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
+      // req.refresh_Token = cookies.refresh_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
       next();
     } else if (decoded === "TokenExpiredError") {
       // if (cookies && cookies.refresh_Token) {
       //   let data = await handleRefreshToken(cookies.refresh_Token);
       //   let newAccessToken = data.newAccessToken;
       //   let newRefreshToken = data.newRefreshToken;
-
       //   // set cookie
       //   if (data && newAccessToken && newRefreshToken) {
       //     res.cookie("access_Token", newAccessToken, {
@@ -85,7 +82,6 @@ const checkUserJwt = async (req, res, next) => {
       //       maxAge: +process.env.MAX_AGE_REFRESH_TOKEN, // 1 days
       //     });
       //   }
-
       //   // Retry(FE) nếu lỗi là 400 -> vì token refresh chưa kịp /api/account -> retry để lấy token mới
       //   return res.status(400).json({
       //     EC: -1,

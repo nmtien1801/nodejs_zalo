@@ -5,23 +5,6 @@ const {createJwt} = require("../middleware/jwtAction");
 require("dotenv").config();
 // SEARCH: sequelize
 
-const checkEmailExists = (userEmail) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let user = await db.Account.findOne({
-        where: { email: userEmail },
-      });
-      if (user) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 const checkPhoneExists = async (userPhone) => {
   let phone = await db.Account.findOne({
     where: { phone: userPhone },

@@ -1,6 +1,6 @@
 const express = require("express");
 const authController = require("../controller/authController");
-// const { checkUserJwt, checkUserPermission } = require("../middleware/jwtAction");
+const { checkUserJwt } = require("../middleware/jwtAction");
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ const router = express.Router();
  */
 const AuthRoutes = (app) => {
   // Middleware
-  // router.all("*", checkUserJwt, checkUserPermission);
+  router.all("*", checkUserJwt);
 
   router.post("/api/login", authController.handleLogin);
 

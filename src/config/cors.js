@@ -10,6 +10,7 @@ const configCORS = (app) => {
       process.env.REACT_URL,
       process.env.REACT_NATIVE_URL,
     ];
+
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin); // Cho phép origin của request
