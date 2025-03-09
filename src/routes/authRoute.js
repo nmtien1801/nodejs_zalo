@@ -14,10 +14,10 @@ const AuthRoutes = (app) => {
   router.all("*", checkUserJwt);
 
   router.post("/api/login", authController.handleLogin);
-
-  // router.post("/api/register", authController.handleRegister);
+  router.post("/api/register", authController.handleRegister);
+  
   // router.post("/api/logout", authController.handleLogout);
-  // router.get("/api/account", authController.getUserAccount);
+  router.get("/api/account", authController.getUserAccount);
 
   return app.use("", router);
 };

@@ -35,7 +35,6 @@ const nonSecurePaths = [
   "/api/login",
   "/api/logout",
   "/api/register",
-  "/api/account",
 ]; // kh check middleware url (1)
 
 // token từ BE sẽ lưu vào header bên FE
