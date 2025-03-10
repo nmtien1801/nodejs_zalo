@@ -21,7 +21,7 @@ const handleLogin = async (req, res) => {
 
 const handleRegister = async (req, res) => {
   try {
-    let data = await authService.handleRegister(req.body);
+    let data = await authService.handleRegister(req.body.formData);
 
     return res.status(200).json({
       EM: data.EM,
