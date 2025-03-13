@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
-const authService = require("../services/authService");
-const { v4: uuidv4 } = require("uuid");
+const jwtUtils = require("../services/jwtUtils");
 require("dotenv").config();
 
 const createJwt = (payload) => {
@@ -12,6 +11,20 @@ const createJwt = (payload) => {
     token = jwt.sign(payload, key, { expiresIn: process.env.JWT_EXPIRES_IN });
   } catch (error) {
     console.log(">>>>>check err token: ", error);
+  }
+  return token;
+};
+
+const createJwt_refreshToken = (payload) => {
+  let key = process.env.JWT_SECRET;
+  let token = null;
+
+  try {
+    token = jwt.sign(payload, key, {
+      expiresIn: process.env.JWT_EXPIRES_REFRESH_TOKEN,
+    });
+  } catch (error) {
+    console.log(">>>>>check err refresh token: ", error);
   }
   return token;
 };
@@ -30,12 +43,7 @@ const verifyToken = (token) => {
   return decoded;
 };
 
-const nonSecurePaths = [
-  "/",
-  "/api/login",
-  "/api/logout",
-  "/api/register",
-]; // kh check middleware url (1)
+const nonSecurePaths = ["/", "/api/login", "/api/logout", "/api/register", "/api/refreshToken"]; // kh check middleware url (1)
 
 // token từ BE sẽ lưu vào header bên FE
 const extractToken = (req) => {
@@ -61,39 +69,26 @@ const checkUserJwt = async (req, res, next) => {
     if (decoded && decoded !== "TokenExpiredError") {
       req.user = decoded; // gán thêm .user(data cookie) vào req BE nhận từ FE
       req.access_Token = access_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
-      // req.refresh_Token = cookies.refresh_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
       next();
     } else if (decoded === "TokenExpiredError") {
-      // if (cookies && cookies.refresh_Token) {
-      //   let data = await handleRefreshToken(cookies.refresh_Token);
-      //   let newAccessToken = data.newAccessToken;
-      //   let newRefreshToken = data.newRefreshToken;
-      //   // set cookie
-      //   if (data && newAccessToken && newRefreshToken) {
-      //     res.cookie("access_Token", newAccessToken, {
-      //       httpOnly: true, // chỉ cho phép server đọc cookie, không cho client
-      //       secure: false,
-      //       maxAge: +process.env.MAX_AGE_ACCESS_TOKEN, // 15P
-      //     });
-      //     res.cookie("refresh_Token", newRefreshToken, {
-      //       httpOnly: true, // chỉ cho phép server đọc cookie, không cho client
-      //       secure: false,
-      //       maxAge: +process.env.MAX_AGE_REFRESH_TOKEN, // 1 days
-      //     });
-      //   }
-      //   // Retry(FE) nếu lỗi là 400 -> vì token refresh chưa kịp /api/account -> retry để lấy token mới
-      //   return res.status(400).json({
-      //     EC: -1,
-      //     DT: "",
-      //     EM: "need to retry with new token",
-      //   });
-      // } else {
-      //   return res.status(401).json({
-      //     EC: -1,
-      //     DT: "",
-      //     EM: "Not authenticated the user(token access_Token)",
-      //   });
-      // }
+      let refresh_Token = await jwtUtils.getRefreshTokenByAccessToken(
+        access_Token
+      );
+
+      if (refresh_Token) {
+        // Retry(FE) nếu lỗi là 400 -> vì token refresh chưa kịp /api/account -> retry để lấy token mới
+        return res.status(400).json({
+          EM: "need to retry with new token",
+          EC: -1,
+          DT: {},
+        });
+      } else {
+        return res.status(401).json({
+          EC: -1,
+          DT: "",
+          EM: "Not authenticated the user(token access_Token)",
+        });
+      }
     } else {
       return res.status(401).json({
         EC: -1,
@@ -101,7 +96,6 @@ const checkUserJwt = async (req, res, next) => {
         EM: "Not authenticated the user(token access_Token)",
       });
     }
-    // console.log(">>> my cookies 401: ", cookies.access_Token);
   }
   // ngược lại khi không có cookies or header thì trả ra lỗi không xác thực
   else {
@@ -155,36 +149,10 @@ const checkUserPermission = (req, res, next) => {
   }
 };
 
-const handleRefreshToken = async (refreshToken) => {
-  let newAccessToken = "";
-  let newRefreshToken = "";
-
-  // tìm db user có refreshToken
-  let user = await authService.getUserByRefreshToken(refreshToken);
-
-  if (user) {
-    // create access_Token -> sửa res.DT(service) trong lần check thứ 1
-    let payload = {
-      email: user.email,
-      userName: user.userName,
-      pathOfRole: user.pathOfRole,
-      roleID: user.roleID, // chức vụ
-    };
-    newAccessToken = createJwt(payload);
-
-    newRefreshToken = uuidv4();
-    await authService.updateUserRefreshToken(user.email, newRefreshToken);
-  }
-
-  return {
-    newAccessToken,
-    newRefreshToken,
-  };
-};
-
 module.exports = {
   createJwt,
   verifyToken,
   checkUserJwt,
   checkUserPermission,
+  createJwt_refreshToken,
 };

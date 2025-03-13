@@ -2,27 +2,27 @@
 "use strict";
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("Account", {
+    await queryInterface.createTable("Session", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      email: {
-        type: Sequelize.STRING,
-      },
-      phone: {
-        type: Sequelize.STRING,
-      },
-      username: {
-        type: Sequelize.STRING,
-      },
-      password : {
-        type: Sequelize.STRING,
-      },
-      roleID: {
+      accountID: {
         type: Sequelize.INTEGER,
+      },
+      access_Token: {
+        type: Sequelize.STRING,
+      },
+      refresh_Token: {
+        type: Sequelize.STRING,
+      },
+      ip_device: {
+        type: Sequelize.STRING,
+      },
+      user_agent: {
+        type: Sequelize.STRING,
       },
 
       createdAt: {
@@ -36,10 +36,10 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("Account");
+    await queryInterface.dropTable("Session");
   },
 };
 
 // search : sequelize run specific migration
-// npx sequelize-cli db:migrate --to Account.js
+// npx sequelize-cli db:migrate --to session.js
 // npx sequelize-cli db:migrate --to migrate_addColumnUser.js

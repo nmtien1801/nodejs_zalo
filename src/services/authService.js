@@ -1,7 +1,10 @@
 const db = require("../sequelize/models/index");
 const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
-const { createJwt } = require("../middleware/jwtAction");
+const {
+  createJwt,
+  createJwt_refreshToken,
+} = require("../middleware/jwtAction");
 require("dotenv").config();
 // SEARCH: sequelize
 
@@ -25,7 +28,7 @@ const checkPassword = (userPassWord, hashPassWord) => {
   return bcrypt.compareSync(userPassWord, hashPassWord); // true or false
 };
 
-const handleLogin = async (rawData) => {
+const handleLogin = async (rawData, ip_device, user_agent) => {
   try {
     // search: sequelize Op.or
     let user = await db.Account.findOne({
@@ -46,7 +49,16 @@ const handleLogin = async (rawData) => {
           roleID: user.roleID, // chức vụ
         };
         let token = createJwt(payload);
-        let tokenRefresh = createJwt(payload);
+        let tokenRefresh = createJwt_refreshToken(payload);
+
+        // tạo session refreshToken
+        await db.Session.create({
+          accountID: user.id,
+          access_Token: token,
+          refresh_Token: tokenRefresh,
+          ip_device: ip_device,
+          user_agent: user_agent,
+        });
 
         return {
           EM: "ok!",
@@ -119,6 +131,8 @@ const handleRegister = async (rawData) => {
     };
   }
 };
+
+
 
 module.exports = {
   handleLogin,
