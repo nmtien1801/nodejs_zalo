@@ -1,63 +1,56 @@
-const db = require("../sequelize/models/index");
-const { Op } = require("sequelize");
 require("dotenv").config();
-// SEARCH: sequelize
+const Session = require("../models/session"); 
+const Account = require("../models/account"); 
 
 const getRefreshTokenByAccessToken = async (accessToken) => {
-  let session = await db.Session.findOne({
-    where: {
-      access_Token: accessToken,
-    },
-  });
-
-  if (session) {
-    return session.refresh_Token;
+  try {
+    let session = await Session.findOne({ access_Token: accessToken });
+    
+    if (session) {
+      return session.refresh_Token;
+    }
+    return null;
+  } catch (error) {
+    console.log(">>>> Error in getRefreshTokenByAccessToken: ", error);
+    return null;
   }
-  return null;
 };
+
+
+
 
 const getUserByRefreshToken = async (refreshToken) => {
   try {
-    let user = await db.Session.findOne({
-      where: {
-        refresh_Token: refreshToken,
-      },
-      include: [
-        {
-          model: db.Account,
-          attributes: ["email", "username", "phone", "roleID"],
-        },
-      ],
-    });
+    let user = await Session.findOne({ refresh_Token: refreshToken })
+      .populate({
+        path: "user", // Đảm bảo rằng bạn đã có trường user là ObjectId tham chiếu đến Account
+        select: "email username phone roleID",  // Chỉ lấy những trường cần thiết
+      });
+
     if (user) {
       return {
-        email: user.Account.email,
-        phone: user.Account.phone,
-        username: user.Account.username,
-        roleID: user.Account.roleID,
+        email: user.user.email,
+        phone: user.user.phone,
+        username: user.user.username,
+        roleID: user.user.roleID,
       };
     }
     return null;
   } catch (error) {
-    console.log(">>>>check Err getUserByRefreshToken: ", error);
+    console.log(">>>> Error in getUserByRefreshToken: ", error);
     return null;
   }
 };
 
-const updateUserRefreshToken = async (
-  refreshToken,
-  newAccessToken,
-  newRefreshToken
-) => {
+
+const updateUserRefreshToken = async (refreshToken, newAccessToken, newRefreshToken) => {
   try {
-    await db.Session.update(
+    await Session.updateOne(
+      { refresh_Token: refreshToken },
       {
-        refresh_Token: newRefreshToken,
-        access_Token: newAccessToken,
-      },
-      {
-        where: {
-          refresh_Token: refreshToken,
+        $set: {
+          access_Token: newAccessToken,
+          refresh_Token: newRefreshToken,
         },
       }
     );
@@ -67,7 +60,7 @@ const updateUserRefreshToken = async (
       DT: "",
     };
   } catch (error) {
-    console.log(">>>>check Err updateUserRefreshToken: ", error);
+    console.log(">>>> Error in updateUserRefreshToken: ", error);
     return {
       EM: "something wrong in updateUserRefreshToken service ...",
       EC: -2,

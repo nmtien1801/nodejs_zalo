@@ -30,6 +30,8 @@ const handleLogin = async (req, res) => {
 
 const handleRegister = async (req, res) => {
   try {
+    console.log("check control register", req.body.formData);
+    
     let data = await authService.handleRegister(req.body.formData);
 
     return res.status(200).json({

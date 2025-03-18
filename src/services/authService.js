@@ -1,17 +1,14 @@
-const db = require("../sequelize/models/index");
 const bcrypt = require("bcryptjs");
-const { Op } = require("sequelize");
 const {
   createJwt,
   createJwt_refreshToken,
 } = require("../middleware/jwtAction");
 require("dotenv").config();
-// SEARCH: sequelize
+const Account = require("../models/account"); // Import Account Model
+const Session = require("../models/session");
 
 const checkPhoneExists = async (userPhone) => {
-  let phone = await db.Account.findOne({
-    where: { phone: userPhone },
-  });
+  let phone = await Account.findOne({ phone: userPhone });
   if (phone) {
     return true;
   }
@@ -30,18 +27,16 @@ const checkPassword = (userPassWord, hashPassWord) => {
 
 const handleLogin = async (rawData, ip_device, user_agent) => {
   try {
-    // search: sequelize Op.or
-    let user = await db.Account.findOne({
-      where: {
-        phone: rawData.phoneNumber,
-      },
-    });
+    // Tìm tài khoản bằng số điện thoại
+    let user = await Account.findOne({ phone: rawData.phoneNumber });
 
     if (user) {
-      let isCorrectPassword = checkPassword(rawData.password, user.password);
+      let isCorrectPassword = checkPassword(        rawData.password,
+        user.password
+      );
 
-      // không bị lỗi
-      if (isCorrectPassword === true) {
+      // Kiểm tra mật khẩu đúng hay sai
+      if (isCorrectPassword) {
         let payload = {
           email: user.email,
           username: user.username,
@@ -51,20 +46,22 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
         let token = createJwt(payload);
         let tokenRefresh = createJwt_refreshToken(payload);
 
-        // tạo session refreshToken
-        await db.Session.create({
-          accountID: user.id,
+        // Tạo session với refreshToken
+        let newSession = new Session({
+          accountID: user._id,
           access_Token: token,
           refresh_Token: tokenRefresh,
           ip_device: ip_device,
           user_agent: user_agent,
         });
 
+        await newSession.save();
+
         return {
           EM: "ok!",
           EC: 0,
           DT: {
-            _id: user.id,
+            _id: user._id,
             access_Token: token,
             refresh_Token: tokenRefresh,
             email: user.email,
@@ -106,21 +103,16 @@ const handleRegister = async (rawData) => {
       username: rawData.username,
       password: hashPassWord(rawData.password),
       phone: rawData.phoneNumber,
-      roleID: rawData.roleID,
     };
 
-    let user = await db.Account.create(newUser);
-    if (user) {
-      return {
-        EM: "register success",
-        EC: 0,
-        DT: {},
-      };
-    }
+    // Tạo tài khoản mới trong MongoDB
+    let user = new Account(newUser);
+    await user.save();
+
     return {
-      EM: "register failed",
-      EC: 1,
-      DT: "",
+      EM: "register success",
+      EC: 0,
+      DT: {},
     };
   } catch (error) {
     console.log(">>>>check Err Register user: ", error);
@@ -131,8 +123,6 @@ const handleRegister = async (rawData) => {
     };
   }
 };
-
-
 
 module.exports = {
   handleLogin,
