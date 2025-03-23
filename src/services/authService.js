@@ -4,11 +4,12 @@ const {
   createJwt_refreshToken,
 } = require("../middleware/jwtAction");
 require("dotenv").config();
-const Account = require("../models/account"); // Import Account Model
+const RoomChat = require("../models/roomChat");
 const Session = require("../models/session");
 
+
 const checkPhoneExists = async (userPhone) => {
-  let phone = await Account.findOne({ phone: userPhone });
+  let phone = await RoomChat.findOne({ phone: userPhone });
   if (phone) {
     return true;
   }
@@ -28,16 +29,15 @@ const checkPassword = (userPassWord, hashPassWord) => {
 const handleLogin = async (rawData, ip_device, user_agent) => {
   try {
     // Tìm tài khoản bằng số điện thoại
-    let user = await Account.findOne({ phone: rawData.phoneNumber });
+    let user = await RoomChat.findOne({ phone: rawData.phoneNumber });
 
     if (user) {
-      let isCorrectPassword = checkPassword(        rawData.password,
-        user.password
-      );
+      let isCorrectPassword = checkPassword(rawData.password, user.password);
 
       // Kiểm tra mật khẩu đúng hay sai
       if (isCorrectPassword) {
         let payload = {
+          _id: user._id,
           email: user.email,
           username: user.username,
           phone: user.phone,
@@ -48,7 +48,7 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
 
         // Tạo session với refreshToken
         let newSession = new Session({
-          accountID: user._id,
+          roomChatID: user._id,
           access_Token: token,
           refresh_Token: tokenRefresh,
           ip_device: ip_device,
@@ -106,7 +106,7 @@ const handleRegister = async (rawData) => {
     };
 
     // Tạo tài khoản mới trong MongoDB
-    let user = new Account(newUser);
+    let user = new RoomChat(newUser);
     await user.save();
 
     return {

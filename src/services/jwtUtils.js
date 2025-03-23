@@ -1,6 +1,5 @@
 require("dotenv").config();
 const Session = require("../models/session"); 
-const Account = require("../models/account"); 
 
 const getRefreshTokenByAccessToken = async (accessToken) => {
   try {
@@ -23,8 +22,8 @@ const getUserByRefreshToken = async (refreshToken) => {
   try {
     let user = await Session.findOne({ refresh_Token: refreshToken })
       .populate({
-        path: "user", // Đảm bảo rằng bạn đã có trường user là ObjectId tham chiếu đến Account
-        select: "email username phone roleID",  // Chỉ lấy những trường cần thiết
+        path: "roomChatID", // Đảm bảo rằng bạn đã có trường user là ObjectId tham chiếu đến RoomChat
+        select: "_id email username phone roleID",  // Chỉ lấy những trường cần thiết
       });
 
     if (user) {

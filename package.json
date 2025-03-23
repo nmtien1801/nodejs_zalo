@@ -15,13 +15,14 @@
   "license": "ISC",
   "dependencies": {
     "@babel/runtime": "^7.22.10",
+    "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.18.2",
-    "mongoose": "^8.12.1",
-    "body-parser": "^1.20.3",
     "ejs": "^3.1.10",
-    "jsonwebtoken": "^9.0.2"
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.12.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.22.10",
@@ -31,8 +32,8 @@
     "@babel/plugin-transform-runtime": "^7.22.10",
     "@babel/preset-env": "^7.22.10",
     "babel-plugin-module-resolver": "^5.0.0",
+    "bcryptjs": "^3.0.2",
     "eslint": "^8.47.0",
-    "nodemon": "^3.0.1",
-    "bcryptjs": "^3.0.2"
+    "nodemon": "^3.0.1"
   }
 }

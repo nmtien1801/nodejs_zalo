@@ -57,6 +57,7 @@ const getUserAccount = async (req, res) => {
       EM: "ok fetch context",
       EC: 0,
       DT: {
+        _id: req.user._id,
         access_Token: req.access_Token,
         email: req.user.email,
         username: req.user.username,
