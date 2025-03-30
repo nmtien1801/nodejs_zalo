@@ -24,6 +24,8 @@ const conversationSchema = new mongoose.Schema(
     },
     message: { type: String, required: true },
     time: { type: String, required: true },
+    startTime: { type: Date, required: true },
+    endTime: { type: Date },
     avatar: { type: String, required: false },
     type: { type: Number, required: true },
   },

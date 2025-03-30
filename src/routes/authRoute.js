@@ -10,7 +10,7 @@ const router = express.Router();
  */
 const AuthRoutes = (app) => {
   // Middleware
-  router.all("*", checkUserJwt);
+  // router.all("*", checkUserJwt);
 
   router.post("/api/login", authController.handleLogin);
   router.post("/api/register", authController.handleRegister);

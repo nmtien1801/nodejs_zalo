@@ -25,7 +25,13 @@ const socketInit = (server) => {
     },
   });
 
+  let users = {}; // Lưu danh sách người dùng tham gia
+  let groups = {}; // Lưu danh sách nhóm gọi
+
   io.on("connection", (socket) => {
+    console.log("a user connected", socket.id);
+
+    // CHAT MESSAGE
     socket.on("SEND_MSG", async (msg) => {
       console.log(msg, "MSG FROM FRONTEND");
       const isSaved = await saveMsg(msg);
@@ -37,6 +43,35 @@ const socketInit = (server) => {
 
     socket.on("DELETE_MSG", (msg) => {
       socket.to(msg.receiver.socketId).emit("DELETED_MSG", msg);
+    });
+
+    // CALL
+    socket.on("join-call", (roomId, userId, user, receiver) => {
+      socket.join(roomId);
+      users[socket.id] = receiver;
+      console.log(">>>>>>>userId: ", userId);
+      
+      socket.to(roomId).emit("user-connected", userId, user, receiver);      
+    });
+
+    socket.on("offer", (roomId, offer) => {
+      
+      socket.to(roomId).emit("offer", offer);
+    });
+
+    socket.on("answer", (roomId, answer) => {
+      console.log(">>>>>>>>>>>>answer: ",  answer);
+
+      socket.to(roomId).emit("answer", answer);
+    });
+
+    socket.on("candidate", (roomId, candidate) => {
+      socket.to(roomId).emit("candidate", candidate);
+    });
+
+    socket.on("end-call", (roomId) => {
+      socket.to(roomId).emit("call-ended");
+      console.log(`Call in room ${roomId} ended`);
     });
 
     socket.on("disconnect", () => {

@@ -10,7 +10,7 @@ const router = express.Router();
  */
 const ChatRoutes = (app) => {
   // Middleware
-  router.all("*", checkUserJwt);
+  // router.all("*", checkUserJwt);
 
   // API lấy tin nhắn giữa 2 người
   app.get("/messages/:sender/:receiver/:type", chatController.getMsg);
