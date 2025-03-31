@@ -18,6 +18,7 @@ const removeUser = (socketId) => {
     onlineUsers.splice(isExist, 1);
   }
 };
+
 const socketInit = (server) => {
   const io = socket(server, {
     cors: {
@@ -27,9 +28,20 @@ const socketInit = (server) => {
 
   let users = {}; // Lưu danh sách người dùng tham gia
   let groups = {}; // Lưu danh sách nhóm gọi
+  const USER_TIMEOUT = 10000; // 10 giây
+
+  // Kiểm tra user timeout định kỳ
+  setInterval(() => {
+    const now = Date.now();
+    Object.keys(users).forEach((userId) => {
+      if (now - users[userId].lastActivity > USER_TIMEOUT) {
+        delete users[userId];
+      }
+    });
+  }, 5000);
 
   io.on("connection", (socket) => {
-    console.log("a user connected", socket.id);
+    console.log(socket.id);
 
     // CHAT MESSAGE
     socket.on("SEND_MSG", async (msg) => {
@@ -46,37 +58,79 @@ const socketInit = (server) => {
     });
 
     // CALL
-    socket.on("join-call", (roomId, userId, user, receiver) => {
-      socket.join(roomId);
-      users[socket.id] = receiver;
-      console.log(">>>>>>>userId: ", userId);
-      
-      socket.to(roomId).emit("user-connected", userId, user, receiver);      
+    // Bước 1: Đăng ký user với heartbeat
+    socket.on("register", (userId) => {
+      users[userId] = {
+        socketId: socket.id,
+        lastActivity: Date.now(),
+        streams: [], // 👈 Thêm trường để theo dõi stream
+      };
+      console.log("user: ", users);
+
+      // Gửi danh sách user online
+      socket.emit("user-list", Object.keys(users));
     });
 
-    socket.on("offer", (roomId, offer) => {
-      
-      socket.to(roomId).emit("offer", offer);
+    // Bước 2: Xử lý gọi điện với kiểm tra online
+    socket.on("call-user", ({ senderId, receiverId, offer }) => {
+      const receiver = users[receiverId];
+
+      if (!receiver) {
+        return socket.emit("call-error", {
+          to: senderId,
+          message: "User not found or offline",
+        });
+      }
+
+      // Kiểm tra timeout
+      if (Date.now() - receiver.lastActivity > USER_TIMEOUT) {
+        delete users[receiverId];
+        return socket.emit("call-error", {
+          to: senderId,
+          message: "User is offline",
+        });
+      }
+
+      // Cập nhật hoạt động
+      users[receiverId].lastActivity = Date.now();
+
+      socket.to(receiver.socketId).emit("incoming-call", {
+        senderId,
+        offer,
+        callerSocketId: socket.id, // Thêm thông tin socket caller
+      });
+
+      io.to(receiver.socketId).emit("signal", { signal: offer });
     });
 
-    socket.on("answer", (roomId, answer) => {
-      console.log(">>>>>>>>>>>>answer: ",  answer);
+    // Bước 3: Chuyển tiếp tín hiệu WebRTC với buffer -> khi chấp nhận cuộc gọi
+    socket.on("relay-signal", ({ targetUserId, signal }) => {
+      const target = users[targetUserId];
 
-      socket.to(roomId).emit("answer", answer);
+      if (target) {
+        socket.to(target.socketId).emit("signal", {
+          ...signal,
+          senderSocketId: socket.id, // Thêm thông tin sender
+        });
+      }
     });
 
-    socket.on("candidate", (roomId, candidate) => {
-      socket.to(roomId).emit("candidate", candidate);
-    });
-
-    socket.on("end-call", (roomId) => {
-      socket.to(roomId).emit("call-ended");
-      console.log(`Call in room ${roomId} ended`);
+    // Heartbeat
+    socket.on("heartbeat", (userId) => {
+      if (users[userId]) {
+        users[userId].lastActivity = Date.now();
+      }
     });
 
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
+      //
+      Object.keys(users).forEach((userId) => {
+        if (users[userId].socketId === socket.id) {
+          delete users[userId];
+        }
+      });
     });
   });
 };

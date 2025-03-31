@@ -6,7 +6,7 @@ const roomChatSchema = new mongoose.Schema({
   username: { type: String, required: true },
   password: { type: String, required: true },
   roleID: { type: String, required: false },
-
+  
 }, { timestamps: true }); 
 
 const RoomChat = mongoose.model("RoomChat", roomChatSchema);

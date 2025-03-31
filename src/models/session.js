@@ -6,6 +6,7 @@ const sessionSchema = new mongoose.Schema({
   refresh_Token: { type: String, required: true },
   ip_device: { type: String, required: true },
   user_agent: { type: String, required: true },
+  // socketID: { type: String, required: true },
 
 }, { timestamps: true }); 
 
