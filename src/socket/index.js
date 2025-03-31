@@ -73,55 +73,92 @@ const socketInit = (server) => {
 
     // Bước 2: Xử lý gọi điện với kiểm tra online
     socket.on("call-user", ({ senderId, receiverId, offer }) => {
+      // Thêm validate offer
+      if (!offer || !offer.type || !offer.sdp) {
+        return socket.emit("call-error", {
+          to: senderId,
+          message: "Invalid offer format"
+        });
+      }
+    
       const receiver = users[receiverId];
-
       if (!receiver) {
         return socket.emit("call-error", {
           to: senderId,
-          message: "User not found or offline",
+          message: "User not found or offline"
         });
       }
-
+    
       // Kiểm tra timeout
       if (Date.now() - receiver.lastActivity > USER_TIMEOUT) {
         delete users[receiverId];
         return socket.emit("call-error", {
           to: senderId,
-          message: "User is offline",
+          message: "User is offline"
         });
       }
-
-      // Cập nhật hoạt động
+    
       users[receiverId].lastActivity = Date.now();
-
+    
+      // Gửi đúng cấu trúc dữ liệu
       socket.to(receiver.socketId).emit("incoming-call", {
         senderId,
         offer,
-        callerSocketId: socket.id, // Thêm thông tin socket caller
+        callerSocketId: socket.id
       });
-
-      io.to(receiver.socketId).emit("signal", { signal: offer });
+    
+      // Gửi signal riêng biệt
+      socket.to(receiver.socketId).emit("signal", { 
+        signal: {
+          type: offer.type,
+          sdp: offer.sdp
+        } 
+      });
     });
 
     // Bước 3: Chuyển tiếp tín hiệu WebRTC với buffer -> khi chấp nhận cuộc gọi
     socket.on("relay-signal", ({ targetUserId, signal }) => {
-      const target = users[targetUserId];
-
-      if (target) {
-        socket.to(target.socketId).emit("signal", {
-          ...signal,
-          senderSocketId: socket.id, // Thêm thông tin sender
+      if (!targetUserId || !signal || !signal.type) {
+        console.error("Thiếu thông tin bắt buộc:", { targetUserId, signal });
+        return socket.emit("call-error", {
+          message: "Thiếu thông tin tín hiệu hoặc người dùng đích",
         });
       }
+    
+      const target = users[targetUserId];
+      if (!target) {
+        console.error("Người dùng đích không tồn tại:", targetUserId);
+        return socket.emit("call-error", {
+          message: "Người dùng đích không online",
+        });
+      }
+    
+      const normalizedSignal = {
+        type: signal.type,
+        sdp: signal.sdp,
+        candidate: signal.candidate,
+        sdpMid: signal.sdpMid || "0",
+        sdpMLineIndex: signal.sdpMLineIndex || 0,
+      };
+    
+      socket.to(target.socketId).emit("signal", {
+        signal: normalizedSignal,
+        senderSocketId: socket.id,
+      });
     });
 
-    // Heartbeat
+    // Heartbeat giữ kết nối
     socket.on("heartbeat", (userId) => {
       if (users[userId]) {
         users[userId].lastActivity = Date.now();
       }
     });
 
+    socket.on("check-user", ({ userId }, callback) => {
+      const isOnline = !!users[userId];
+      callback({ isOnline });
+    });
+    
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
