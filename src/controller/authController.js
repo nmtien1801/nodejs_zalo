@@ -88,6 +88,7 @@ const handleRefreshToken = async (req, res) => {
     if (user) {
       // create access_Token -> sửa res.DT(service) trong lần check thứ 1
       let payload = {
+        _id: user._id,
         email: user.email,
         username: user.username,
         phone: user.phone,

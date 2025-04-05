@@ -15,7 +15,7 @@ const getConversations = async (senderId) => {
       DT: conversations,
     };
   } catch (error) {
-    console.log("check getConversations service", err);
+    console.log("check getConversations service", error);
     return res.status(500).json({
       EM: "error getConversations service", //error message
       EC: 2, //error code

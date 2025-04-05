@@ -77,42 +77,42 @@ const socketInit = (server) => {
       if (!offer || !offer.type || !offer.sdp) {
         return socket.emit("call-error", {
           to: senderId,
-          message: "Invalid offer format"
+          message: "Invalid offer format",
         });
       }
-    
+
       const receiver = users[receiverId];
       if (!receiver) {
         return socket.emit("call-error", {
           to: senderId,
-          message: "User not found or offline"
+          message: "User not found or offline",
         });
       }
-    
+
       // Kiểm tra timeout
       if (Date.now() - receiver.lastActivity > USER_TIMEOUT) {
         delete users[receiverId];
         return socket.emit("call-error", {
           to: senderId,
-          message: "User is offline"
+          message: "User is offline",
         });
       }
-    
+
       users[receiverId].lastActivity = Date.now();
-    
+
       // Gửi đúng cấu trúc dữ liệu
       socket.to(receiver.socketId).emit("incoming-call", {
         senderId,
         offer,
-        callerSocketId: socket.id
+        callerSocketId: socket.id,
       });
-    
+
       // Gửi signal riêng biệt
-      socket.to(receiver.socketId).emit("signal", { 
+      socket.to(receiver.socketId).emit("signal", {
         signal: {
           type: offer.type,
-          sdp: offer.sdp
-        } 
+          sdp: offer.sdp,
+        },
       });
     });
 
@@ -124,7 +124,7 @@ const socketInit = (server) => {
           message: "Thiếu thông tin tín hiệu hoặc người dùng đích",
         });
       }
-    
+
       const target = users[targetUserId];
       if (!target) {
         console.error("Người dùng đích không tồn tại:", targetUserId);
@@ -132,7 +132,7 @@ const socketInit = (server) => {
           message: "Người dùng đích không online",
         });
       }
-    
+
       const normalizedSignal = {
         type: signal.type,
         sdp: signal.sdp,
@@ -140,7 +140,7 @@ const socketInit = (server) => {
         sdpMid: signal.sdpMid || "0",
         sdpMLineIndex: signal.sdpMLineIndex || 0,
       };
-    
+
       socket.to(target.socketId).emit("signal", {
         signal: normalizedSignal,
         senderSocketId: socket.id,
@@ -158,7 +158,7 @@ const socketInit = (server) => {
       const isOnline = !!users[userId];
       callback({ isOnline });
     });
-    
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);

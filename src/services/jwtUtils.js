@@ -1,10 +1,10 @@
 require("dotenv").config();
-const Session = require("../models/session"); 
+const Session = require("../models/session");
 
 const getRefreshTokenByAccessToken = async (accessToken) => {
   try {
     let session = await Session.findOne({ access_Token: accessToken });
-    
+
     if (session) {
       return session.refresh_Token;
     }
@@ -15,23 +15,19 @@ const getRefreshTokenByAccessToken = async (accessToken) => {
   }
 };
 
-
-
-
 const getUserByRefreshToken = async (refreshToken) => {
   try {
-    let user = await Session.findOne({ refresh_Token: refreshToken })
-      .populate({
-        path: "roomChatID", // Đảm bảo rằng bạn đã có trường user là ObjectId tham chiếu đến RoomChat
-        select: "_id email username phone roleID",  // Chỉ lấy những trường cần thiết
-      });
+    let user = await Session.findOne({ refresh_Token: refreshToken }).populate({
+      path: "roomChatID", // Đảm bảo rằng bạn đã có trường user là ObjectId tham chiếu đến RoomChat
+      select: "_id email username phone roleID", // Chỉ lấy những trường cần thiết
+    });
 
     if (user) {
       return {
-        email: user.user.email,
-        phone: user.user.phone,
-        username: user.user.username,
-        roleID: user.user.roleID,
+        _id: user.roomChatID._id,
+        email: user.roomChatID.email,
+        phone: user.roomChatID.phone,
+        username: user.roomChatID.username,
       };
     }
     return null;
@@ -41,8 +37,11 @@ const getUserByRefreshToken = async (refreshToken) => {
   }
 };
 
-
-const updateUserRefreshToken = async (refreshToken, newAccessToken, newRefreshToken) => {
+const updateUserRefreshToken = async (
+  refreshToken,
+  newAccessToken,
+  newRefreshToken
+) => {
   try {
     await Session.updateOne(
       { refresh_Token: refreshToken },
