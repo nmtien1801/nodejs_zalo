@@ -127,7 +127,7 @@ const socketInit = (server) => {
 
       const target = users[targetUserId];
       if (!target) {
-        console.error("Người dùng đích không tồn tại:", targetUserId);
+        console.error("Người dùng đích không tồn tại:", targetUserId, " id: ", socket.id);
         return socket.emit("call-error", {
           message: "Người dùng đích không online",
         });

@@ -77,7 +77,7 @@ const checkUserJwt = async (req, res, next) => {
 
       if (refresh_Token) {
         // Retry(FE) nếu lỗi là 400 -> vì token refresh chưa kịp /api/account -> retry để lấy token mới
-        return res.status(400).json({
+        return res.status(401).json({
           EM: "need to retry with new token",
           EC: -1,
           DT: {},
