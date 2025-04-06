@@ -28,14 +28,17 @@ const socketInit = (server) => {
 
   let users = {}; // Lưu danh sách người dùng tham gia
   let groups = {}; // Lưu danh sách nhóm gọi
-  const USER_TIMEOUT = 10000; // 10 giây
+  const USER_TIMEOUT = 30000; // 10 giây
 
   // Kiểm tra user timeout định kỳ
   setInterval(() => {
     const now = Date.now();
     Object.keys(users).forEach((userId) => {
-      if (now - users[userId].lastActivity > USER_TIMEOUT) {
-        delete users[userId];
+      if (
+        !users[userId].isOnline &&
+        now - users[userId].lastDisconnect > USER_TIMEOUT
+      ) {
+        delete users[userId]; // Xóa sau khi hết thời gian chờ
       }
     });
   }, 5000);
@@ -59,16 +62,31 @@ const socketInit = (server) => {
 
     // CALL
     // Bước 1: Đăng ký user với heartbeat
+    const signalQueue = {};
+
     socket.on("register", (userId) => {
       users[userId] = {
         socketId: socket.id,
         lastActivity: Date.now(),
         streams: [], // 👈 Thêm trường để theo dõi stream
+        isOnline: true, // Thêm trạng thái online
       };
-      console.log("user: ", users);
+
+      console.log("User registered:", users);
+      
+      // Gửi lại các tín hiệu trong hàng đợi nếu có
+      if (signalQueue[userId]) {
+        signalQueue[userId].forEach(({ signal, senderSocketId }) => {
+          socket.emit("signal", { signal, senderSocketId });
+        });
+        delete signalQueue[userId];
+      }
 
       // Gửi danh sách user online
-      socket.emit("user-list", Object.keys(users));
+      socket.emit(
+        "user-list",
+        Object.keys(users).filter((id) => users[id].isOnline)
+      );
     });
 
     // Bước 2: Xử lý gọi điện với kiểm tra online
@@ -126,8 +144,16 @@ const socketInit = (server) => {
       }
 
       const target = users[targetUserId];
-      if (!target) {
-        console.error("Người dùng đích không tồn tại:", targetUserId, " id: ", socket.id);
+      if (!target || !target.isOnline) {
+        console.error(
+          "Người dùng đích không tồn tại:",
+          targetUserId,
+          "answer id: ",
+          socket.id
+        );
+
+        if (!signalQueue[targetUserId]) signalQueue[targetUserId] = [];
+        signalQueue[targetUserId].push({ signal, senderSocketId: socket.id });
         return socket.emit("call-error", {
           message: "Người dùng đích không online",
         });
@@ -165,7 +191,8 @@ const socketInit = (server) => {
       //
       Object.keys(users).forEach((userId) => {
         if (users[userId].socketId === socket.id) {
-          delete users[userId];
+          users[userId].isOnline = false; // Đánh dấu offline thay vì xóa
+          users[userId].lastDisconnect = Date.now(); // Lưu thời điểm ngắt kết nối
         }
       });
     });
