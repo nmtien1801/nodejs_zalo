@@ -73,7 +73,7 @@ const socketInit = (server) => {
       };
 
       console.log("User registered:", users);
-      
+
       // Gửi lại các tín hiệu trong hàng đợi nếu có
       if (signalQueue[userId]) {
         signalQueue[userId].forEach(({ signal, senderSocketId }) => {
@@ -185,6 +185,18 @@ const socketInit = (server) => {
       callback({ isOnline });
     });
 
+    // Bước 4: Xử lý từ chối cuộc gọi
+    socket.on("end-call", ({ targetUserId }) => {
+      console.log("Received end-call for target:", targetUserId);
+      const target = users[targetUserId];
+      if (target && target.isOnline) {
+        socket.to(target.socketId).emit("call-ended");
+        console.log("Sent call-ended to:", targetUserId);
+      } else {
+        console.log("Target user not online:", targetUserId);
+      }
+    });
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
@@ -193,6 +205,13 @@ const socketInit = (server) => {
         if (users[userId].socketId === socket.id) {
           users[userId].isOnline = false; // Đánh dấu offline thay vì xóa
           users[userId].lastDisconnect = Date.now(); // Lưu thời điểm ngắt kết nối
+          
+          // Thông báo kết thúc cuộc gọi cho các user khác nếu đang trong cuộc gọi
+          Object.keys(users).forEach((otherUserId) => {
+            if (otherUserId !== userId && users[otherUserId].isOnline) {
+              socket.to(users[otherUserId].socketId).emit("call-ended");
+            }
+          });
         }
       });
     });
