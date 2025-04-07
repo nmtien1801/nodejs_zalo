@@ -48,7 +48,7 @@ const socketInit = (server) => {
 
     // CHAT MESSAGE
     socket.on("SEND_MSG", async (msg) => {
-      console.log(msg, "MSG FROM FRONTEND");
+      console.log("MSG FROM FRONTEND", msg);
       const isSaved = await saveMsg(msg);
 
       io.to(msg.receiver.socketId)
@@ -74,7 +74,7 @@ const socketInit = (server) => {
 
       console.log("User registered:", users);
 
-      // Gửi lại các tín hiệu trong hàng đợi nếu có
+      // Gửi lại các tín hiệu trong hàng đợi nếu có -> chờ refresh token
       if (signalQueue[userId]) {
         signalQueue[userId].forEach(({ signal, senderSocketId }) => {
           socket.emit("signal", { signal, senderSocketId });
@@ -82,10 +82,15 @@ const socketInit = (server) => {
         delete signalQueue[userId];
       }
 
-      // Gửi danh sách user online
-      socket.emit(
+      // Gửi danh sách user online cho tất cả client
+      io.emit(
         "user-list",
-        Object.keys(users).filter((id) => users[id].isOnline)
+        Object.keys(users)
+          .filter((id) => users[id].isOnline)
+          .map((id) => ({
+            userId: id,
+            socketId: users[id].socketId,
+          }))
       );
     });
 
@@ -205,13 +210,24 @@ const socketInit = (server) => {
         if (users[userId].socketId === socket.id) {
           users[userId].isOnline = false; // Đánh dấu offline thay vì xóa
           users[userId].lastDisconnect = Date.now(); // Lưu thời điểm ngắt kết nối
-          
+
           // Thông báo kết thúc cuộc gọi cho các user khác nếu đang trong cuộc gọi
           Object.keys(users).forEach((otherUserId) => {
             if (otherUserId !== userId && users[otherUserId].isOnline) {
               socket.to(users[otherUserId].socketId).emit("call-ended");
             }
           });
+
+          // Cập nhật danh sách user online cho tất cả client
+          io.emit(
+            "user-list",
+            Object.keys(users)
+              .filter((id) => users[id].isOnline)
+              .map((id) => ({
+                userId: id,
+                socketId: users[id].socketId,
+              }))
+          );
         }
       });
     });
