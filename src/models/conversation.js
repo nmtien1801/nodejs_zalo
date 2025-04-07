@@ -21,6 +21,12 @@ const conversationSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+      members: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+        },
+      ],
     },
     message: { type: String, required: true },
     time: { type: String, required: true },

@@ -7,7 +7,6 @@ require("dotenv").config();
 const RoomChat = require("../models/roomChat");
 const Session = require("../models/session");
 
-
 const checkPhoneExists = async (userPhone) => {
   let phone = await RoomChat.findOne({ phone: userPhone });
   if (phone) {

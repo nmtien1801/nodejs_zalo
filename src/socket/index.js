@@ -51,9 +51,21 @@ const socketInit = (server) => {
       console.log("MSG FROM FRONTEND", msg);
       const isSaved = await saveMsg(msg);
 
-      io.to(msg.receiver.socketId)
-        .to(msg.sender.socketId)
-        .emit("RECEIVED_MSG", isSaved);
+      if (msg.receiver.type === 1) {
+        // chat đơn 
+        io.to(msg.receiver.socketId)
+          .to(msg.sender.socketId)
+          .emit("RECEIVED_MSG", isSaved);
+      } else if (msg.receiver.type === 2) {
+        // chat nhóm
+        const groupMembers = msg.receiver.members || [];
+        groupMembers.forEach((memberId) => {
+          const member = users[memberId];
+          if (member && member.socketId) {
+            io.to(member.socketId).emit("RECEIVED_MSG", isSaved);
+          }
+        });
+      }
     });
 
     socket.on("DELETE_MSG", (msg) => {
