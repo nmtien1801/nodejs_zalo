@@ -21,12 +21,6 @@ const conversationSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
-      members: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-        },
-      ],
     },
     message: { type: String, required: true },
     time: { type: String, required: true },
@@ -34,6 +28,13 @@ const conversationSchema = new mongoose.Schema(
     endTime: { type: Date },
     avatar: { type: String, required: false },
     type: { type: Number, required: true },
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "RoomChat",
+      },
+    ],
   },
   { timestamps: true }
 );

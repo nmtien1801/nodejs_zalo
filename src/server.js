@@ -6,6 +6,8 @@ const http = require("http");
 const socketInit = require("./socket/index");
 
 const ChatRoute = require("./routes/chatRoutes");
+const RoomChatRoutes = require("./routes/roomChatRoutes");
+const FriendRequestRoutes = require("./routes/friendRequestRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +25,8 @@ connectDB();
 
 AuthRoutes(app);
 ChatRoute(app);
+RoomChatRoutes(app);
+FriendRequestRoutes(app);
 
 // =========================== Socket
 

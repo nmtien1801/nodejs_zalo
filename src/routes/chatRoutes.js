@@ -15,7 +15,10 @@ const ChatRoutes = (app) => {
   // API lấy tin nhắn giữa 2 người
   app.get("/messages/:sender/:receiver/:type", chatController.getMsg);
   app.get("/api/getConversations/:senderId", chatController.getConversations);
+  app.get("/api/getConversationsByMember/:senderId", chatController.getConversationsByMember);
   app.delete("/api/delMsg/:id", chatController.delMsg);
+
+
 
   return app.use("", router);
 };
