@@ -14,13 +14,9 @@ const AuthRoutes = (app) => {
 
   router.post("/api/login", authController.handleLogin);
   router.post("/api/register", authController.handleRegister);
-  router.get("/api/test", (req, res) => {
-    return res.status(200).json({
-      EM: "test ok",
-      EC: 0,
-      DT: {},
-    });
-  });
+
+  app.post("/api/send-code", authController.sendCode);
+  app.post("/api/reset-password", authController.resetPassword);
 
   // router.post("/api/logout", authController.handleLogout);
   router.get("/api/account", authController.getUserAccount);

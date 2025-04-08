@@ -7,6 +7,7 @@ const roomChatSchema = new mongoose.Schema(
     username: { type: String, required: true },
     password: { type: String, required: false },
     roleID: { type: String, required: false },
+    code: { type: String, required: false },
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,

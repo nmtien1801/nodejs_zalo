@@ -43,7 +43,7 @@ const verifyToken = (token) => {
   return decoded;
 };
 
-const nonSecurePaths = ["/", "/api/login", "/api/logout", "/api/register", "/api/refreshToken"]; // kh check middleware url (1)
+const nonSecurePaths = ["/", "/api/login", "/api/logout", "/api/register", "/api/refreshToken", "/api/send-code", "/api/reset-password"]; // kh check middleware url (1)
 
 // token từ BE sẽ lưu vào header bên FE
 const extractToken = (req) => {
