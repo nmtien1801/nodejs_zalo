@@ -4,7 +4,7 @@ const configCORS = require("./config/cors");
 const connectDB = require("./config/connectDB");
 const http = require("http");
 const socketInit = require("./socket/index");
-
+const uploadRoutes = require("./routes/uploadRoutes"); 
 const ChatRoute = require("./routes/chatRoutes");
 
 const app = express();
@@ -24,6 +24,7 @@ connectDB();
 AuthRoutes(app);
 ChatRoute(app);
 
+app.use("/api", uploadRoutes); // => endpoint sẽ là /api/upload-avatar
 // =========================== Socket
 
 socketInit(server);
