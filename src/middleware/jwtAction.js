@@ -67,6 +67,7 @@ const checkUserJwt = async (req, res, next) => {
     let decoded = verifyToken(access_Token);
 
     if (decoded && decoded !== "TokenExpiredError") {
+      
       req.user = decoded; // gán thêm .user(data cookie) vào req BE nhận từ FE
       req.access_Token = access_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
       next();

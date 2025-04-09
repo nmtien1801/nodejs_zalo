@@ -41,6 +41,9 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
           username: user.username,
           phone: user.phone,
           roleID: user.roleID, // chức vụ
+          gender: user.gender,
+          dob: user.dob,
+          avatar: user.avatar
         };
         let token = createJwt(payload);
         let tokenRefresh = createJwt_refreshToken(payload);
@@ -67,6 +70,9 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
             phone: user.phone,
             username: user.username,
             roleID: user.roleID, // chức vụ
+            gender: user.gender,
+            dob: user.dob,
+            avatar: user.avatar
           },
         };
       }

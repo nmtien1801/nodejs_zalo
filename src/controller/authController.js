@@ -6,7 +6,6 @@ const {
 } = require("../middleware/jwtAction");
 const emailService = require("../services/emailService");
 
-
 const handleLogin = async (req, res) => {
   try {
     let ip_device =
@@ -33,7 +32,7 @@ const handleLogin = async (req, res) => {
 const handleRegister = async (req, res) => {
   try {
     console.log("check control register", req.body.formData);
-    
+
     let data = await authService.handleRegister(req.body.formData);
 
     return res.status(200).json({
@@ -65,6 +64,9 @@ const getUserAccount = async (req, res) => {
         username: req.user.username,
         phone: req.user.phone,
         roleID: req.user.roleID,
+        gender: req.user.gender,
+        dob: req.user.dob,
+        avatar: req.user.avatar,
       },
     });
   } catch (error) {
@@ -95,6 +97,9 @@ const handleRefreshToken = async (req, res) => {
         username: user.username,
         phone: user.phone,
         roleID: user.roleID, // chức vụ
+        gender: user.gender,
+        dob: user.dob,
+        avatar: user.avatar
       };
       newAccessToken = createJwt(payload);
 
@@ -112,7 +117,7 @@ const handleRefreshToken = async (req, res) => {
       DT: {
         newAccessToken,
         newRefreshToken,
-        user
+        user,
       },
     });
   } catch (error) {
@@ -128,9 +133,9 @@ const handleRefreshToken = async (req, res) => {
 const sendCode = async (req, res) => {
   try {
     let email = req.body.email;
-    
+
     let checkEmailLocal = await authService.checkEmailLocal(req.body.email);
-    
+
     if (checkEmailLocal.EC !== 0) {
       return res.status(400).json({
         EM: checkEmailLocal.EM,
@@ -188,12 +193,16 @@ const resetPassword = async (req, res) => {
 };
 
 const changePassword = async (req, res) => {
-  try {    
+  try {
     let phone = req.body.phone;
     let currentPassword = req.body.currentPassword;
     let newPassword = req.body.newPassword;
 
-    let user = await authService.changePassword(phone, currentPassword, newPassword);
+    let user = await authService.changePassword(
+      phone,
+      currentPassword,
+      newPassword
+    );
 
     return res.status(200).json({
       EM: user.EM,
@@ -217,5 +226,5 @@ module.exports = {
   handleRefreshToken,
   sendCode,
   resetPassword,
-  changePassword
+  changePassword,
 };
