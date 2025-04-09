@@ -8,6 +8,10 @@ const Conversation = require("../models/conversation");
 const roomChatService = require("./roomChatService");
 
 const sendFriendRequest = async (data) => {
+
+    console.log("check sendFriendRequest service", data);
+
+
     try {
 
         // Kiểm tra xem yêu cầu kết bạn đã tồn tại hay chưa
@@ -101,8 +105,31 @@ const acceptFriendRequest = async (_id) => {
             ],
         };
 
-        const saveMsg = new Conversation(_data);
-        await saveMsg.save();
+        const conversation1 = new Conversation(_data);
+        await conversation1.save();
+
+        const conversation2 = new Conversation({
+
+            sender: {
+                _id: user2.DT._id,
+            },
+            receiver: {
+                _id: user1.DT._id,
+                username: user1.DT.username,
+                phone: user1.DT.phone,
+            },
+            message: user2.DT.username + " đã chấp nhận lời mời kết bạn từ bạn",
+            time: Date.now(),
+            startTime: Date.now(),
+            type: 1,
+            members: [
+                user1.DT._id,
+                user2.DT._id,
+            ],
+
+        });
+        await conversation2.save();
+
 
         return {
             EM: "ok! acceptFriendRequest",

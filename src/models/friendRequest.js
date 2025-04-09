@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const friendRequestSchema = new mongoose.Schema(
     {
-        _id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
+        // _id: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     required: true,
+        // },
         fromUser: {
             type: String,
             required: true,

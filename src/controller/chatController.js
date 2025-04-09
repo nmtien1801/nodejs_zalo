@@ -4,7 +4,7 @@ const Message = require("../models/message");
 const getConversations = async (req, res) => {
   try {
     const senderId = req.user._id;
-    let data = await chatService.getConversationsByMember(senderId);
+    let data = await chatService.getConversations(senderId);
 
     console.log("check getConversations", data);
 
