@@ -17,6 +17,7 @@ const AuthRoutes = (app) => {
 
   app.post("/api/send-code", authController.sendCode);
   app.post("/api/reset-password", authController.resetPassword);
+  app.post("/api/changePassword", authController.changePassword);
 
   // router.post("/api/logout", authController.handleLogout);
   router.get("/api/account", authController.getUserAccount);

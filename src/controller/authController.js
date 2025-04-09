@@ -187,11 +187,35 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {    
+    let phone = req.body.phone;
+    let currentPassword = req.body.currentPassword;
+    let newPassword = req.body.newPassword;
+
+    let user = await authService.changePassword(phone, currentPassword, newPassword);
+
+    return res.status(200).json({
+      EM: user.EM,
+      EC: user.EC,
+      DT: "",
+    });
+  } catch (error) {
+    console.error("Error changePassword: ", error);
+    return res.status(500).json({
+      EM: "error from server",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   handleLogin,
   handleRegister,
   getUserAccount,
   handleRefreshToken,
   sendCode,
-  resetPassword
+  resetPassword,
+  changePassword
 };
