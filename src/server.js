@@ -1,5 +1,6 @@
 const express = require("express");
 const AuthRoutes = require("./routes/authRoute");
+const UploadRoutes = require("./routes/uploadRoutes"); 
 const configCORS = require("./config/cors");
 const connectDB = require("./config/connectDB");
 const http = require("http");
@@ -23,6 +24,7 @@ connectDB();
 
 AuthRoutes(app);
 ChatRoute(app);
+UploadRoutes(app)
 
 // =========================== Socket
 
