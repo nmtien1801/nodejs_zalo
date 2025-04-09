@@ -4,6 +4,7 @@ const {
   createJwt,
   createJwt_refreshToken,
 } = require("../middleware/jwtAction");
+const emailService = require("../services/emailService");
 
 const handleLogin = async (req, res) => {
   try {
@@ -31,7 +32,7 @@ const handleLogin = async (req, res) => {
 const handleRegister = async (req, res) => {
   try {
     console.log("check control register", req.body.formData);
-    
+
     let data = await authService.handleRegister(req.body.formData);
 
     return res.status(200).json({
@@ -63,6 +64,9 @@ const getUserAccount = async (req, res) => {
         username: req.user.username,
         phone: req.user.phone,
         roleID: req.user.roleID,
+        gender: req.user.gender,
+        dob: req.user.dob,
+        avatar: req.user.avatar,
       },
     });
   } catch (error) {
@@ -93,6 +97,9 @@ const handleRefreshToken = async (req, res) => {
         username: user.username,
         phone: user.phone,
         roleID: user.roleID, // chức vụ
+        gender: user.gender,
+        dob: user.dob,
+        avatar: user.avatar
       };
       newAccessToken = createJwt(payload);
 
@@ -110,7 +117,7 @@ const handleRefreshToken = async (req, res) => {
       DT: {
         newAccessToken,
         newRefreshToken,
-        user
+        user,
       },
     });
   } catch (error) {
@@ -123,9 +130,101 @@ const handleRefreshToken = async (req, res) => {
   }
 };
 
+const sendCode = async (req, res) => {
+  try {
+    let email = req.body.email;
+
+    let checkEmailLocal = await authService.checkEmailLocal(req.body.email);
+
+    if (checkEmailLocal.EC !== 0) {
+      return res.status(400).json({
+        EM: checkEmailLocal.EM,
+        EC: checkEmailLocal.EC,
+        DT: "",
+      });
+    }
+
+    let code = await emailService.sendSimpleEmail(email); // gửi mail -> lấy code
+    await authService.updateCode(email, code); // khi nhận đc mail lập tức update code vào DB
+
+    return res.status(200).json({
+      EM: "ok",
+      EC: 0,
+      DT: { email: email },
+    });
+  } catch (error) {
+    console.error("Error: ", error);
+    return res.status(500).json({
+      EM: "error from server",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    let email = req.body.email;
+    let code = req.body.code;
+    let password = req.body.password;
+
+    let user = await authService.updatePassword(email, password, code);
+    if (user.EC !== 0) {
+      return res.status(401).json({
+        EM: user.EM,
+        EC: user.EC,
+        DT: "",
+      });
+    }
+
+    return res.status(200).json({
+      EM: "ok",
+      EC: 0,
+      DT: "",
+    });
+  } catch (error) {
+    console.error("Error: ", error);
+    return res.status(500).json({
+      EM: "error from server",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    let phone = req.body.phone;
+    let currentPassword = req.body.currentPassword;
+    let newPassword = req.body.newPassword;
+
+    let user = await authService.changePassword(
+      phone,
+      currentPassword,
+      newPassword
+    );
+
+    return res.status(200).json({
+      EM: user.EM,
+      EC: user.EC,
+      DT: "",
+    });
+  } catch (error) {
+    console.error("Error changePassword: ", error);
+    return res.status(500).json({
+      EM: "error from server",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   handleLogin,
   handleRegister,
   getUserAccount,
   handleRefreshToken,
+  sendCode,
+  resetPassword,
+  changePassword,
 };

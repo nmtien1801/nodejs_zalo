@@ -41,6 +41,9 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
           username: user.username,
           phone: user.phone,
           roleID: user.roleID, // chức vụ
+          gender: user.gender,
+          dob: user.dob,
+          avatar: user.avatar
         };
         let token = createJwt(payload);
         let tokenRefresh = createJwt_refreshToken(payload);
@@ -67,6 +70,9 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
             phone: user.phone,
             username: user.username,
             roleID: user.roleID, // chức vụ
+            gender: user.gender,
+            dob: user.dob,
+            avatar: user.avatar
           },
         };
       }
@@ -123,8 +129,120 @@ const handleRegister = async (rawData) => {
   }
 };
 
+const updateCode = async (email, code) => {
+  try {
+    await RoomChat.updateOne({ email: email }, { $set: { code: code } });
+
+    return {
+      EM: "ok",
+      EC: 0,
+      DT: "",
+    };
+  } catch (error) {
+    console.log(">>>>check Err update code send email: ", error);
+    return {
+      EM: "something wrong in service ...",
+      EC: -2,
+      DT: "",
+    };
+  }
+};
+
+const checkEmailLocal = async (email) => {
+  try {
+    const user = await RoomChat.findOne({ email: email });
+    if (user) {
+      return {
+        EM: "ok",
+        EC: 0,
+        DT: user,
+      };
+    }
+    return {
+      EM: `Email ${email} is not exist in system`,
+      EC: 1,
+      DT: "",
+    };
+  } catch (error) {
+    console.log(">>>>check Err check email: ", error);
+    return {
+      EM: "something wrong in service ...",
+      EC: -2,
+      DT: "",
+    };
+  }
+};
+
+const updatePassword = async (email, password, code) => {
+  try {
+    const user = await RoomChat.findOne({ email: email, code: code });
+
+    if (user) {
+      // update password
+      user.password = hashPassWord(password);
+      await user.save();
+
+      return {
+        EM: "ok",
+        EC: 0,
+        DT: user,
+      };
+    }
+
+    return {
+      EM: `Code ${code} is incorrect`,
+      EC: 1,
+      DT: "",
+    };
+  } catch (error) {
+    console.log(">>>>check Err check code: ", error);
+    return {
+      EM: "something wrong in service ...",
+      EC: -2,
+      DT: "",
+    };
+  }
+};
+
+const changePassword = async (phone, currentPassword, newPassword) => {
+  try {
+    const user = await RoomChat.findOne({ phone });
+
+    if (user) {
+      let isCorrectPassword = checkPassword(currentPassword, user.password);
+      if (isCorrectPassword) {
+        // update password
+        user.password = hashPassWord(newPassword);
+        await user.save();
+
+        return {
+          EM: "ok",
+          EC: 0,
+          DT: user,
+        };
+      }
+      return {
+        EM: `currentPassword ${currentPassword} is incorrect`,
+        EC: 1,
+        DT: "",
+      };
+    }
+  } catch (error) {
+    console.log(">>>>check Err changePassword: ", error);
+    return {
+      EM: "something wrong in service ...",
+      EC: -2,
+      DT: "",
+    };
+  }
+};
+
 module.exports = {
   handleLogin,
   hashPassWord,
   handleRegister,
+  checkEmailLocal,
+  updatePassword,
+  updateCode,
+  changePassword,
 };
