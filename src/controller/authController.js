@@ -33,6 +33,10 @@ const handleLogin = async (req, res) => {
 const handleRegister = async (req, res) => {
   try {
     console.log("check control register", req.body.formData);
+
+    if (!req.body.formData.avatar) {
+      req.body.formData.avatar = "https://i.imgur.com/cIRFqAL.png";
+    }
     
     let data = await authService.handleRegister(req.body.formData);
 
@@ -51,6 +55,28 @@ const handleRegister = async (req, res) => {
   }
 };
 
+const handleLogout = async (req, res) => {
+  try {
+    
+    let refreshToken = req.body.refresh_Token; // Lấy access token từ middleware
+
+    const result = await jwtUtils.handledLogout(refreshToken);
+
+    return res.status(200).json({
+      EM: "OK Logout", // success or error message từ service
+      EC: 2, 
+      DT: {}, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in handleLogout: ", error);
+    return res.status(500).json({
+      EM: "Something went wrong", // error message
+      EC: -2, // error code
+      DT: "", // no data
+    });
+  }
+};
+
 const getUserAccount = async (req, res) => {
   // setTimeout(() => {
   try {
@@ -65,6 +91,7 @@ const getUserAccount = async (req, res) => {
         username: req.user.username,
         phone: req.user.phone,
         roleID: req.user.roleID,
+        avatar: req.user.avatar,
       },
     });
   } catch (error) {
@@ -77,6 +104,46 @@ const getUserAccount = async (req, res) => {
   }
   // }, 1000);
 };
+
+  // get user by phone number
+  // @route GET /api/user/:phone
+  const getUserByPhone = async (req, res) => {
+    try {
+      const { phone } = req.params;
+
+      if (!phone) {
+        return res.status(400).json({
+          EM: "Phone number is required", // error message
+          EC: 1, // error code
+          DT: "", // data
+        });
+      }
+
+      const user = await authService.findUserByPhone(phone);
+
+      if (!user) {
+        return res.status(404).json({
+          EM: "User not found", // error message
+          EC: 1, // error code
+          DT: "", // data
+        });
+      }
+
+      return res.status(200).json({
+        EM: "User found", // success message
+        EC: 0, // success code
+        DT: user, // user data
+      });
+    } catch (error) {
+      console.error("Error in getUserByPhone: ", error);
+      return res.status(500).json({
+        EM: "Error from server", // error message
+        EC: -1, // error code
+        DT: "", // data
+      });
+    }
+  };
+
 
 const handleRefreshToken = async (req, res) => {
   try {
@@ -95,6 +162,7 @@ const handleRefreshToken = async (req, res) => {
         username: user.username,
         phone: user.phone,
         roleID: user.roleID, // chức vụ
+        avatar: user.avatar,
       };
       newAccessToken = createJwt(payload);
 
@@ -190,8 +258,10 @@ const resetPassword = async (req, res) => {
 module.exports = {
   handleLogin,
   handleRegister,
+  handleLogout,
   getUserAccount,
   handleRefreshToken,
   sendCode,
-  resetPassword
+  resetPassword,
+  getUserByPhone,
 };

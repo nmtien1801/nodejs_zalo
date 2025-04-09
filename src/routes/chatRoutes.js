@@ -16,6 +16,7 @@ const ChatRoutes = (app) => {
   app.get("/messages/:sender/:receiver/:type", chatController.getMsg);
   app.get("/api/getConversations/:senderId", chatController.getConversations);
   app.delete("/api/delMsg/:id", chatController.delMsg);
+  app.post("/api/createConversationGroup", chatController.createConversationGroup);
 
   return app.use("", router);
 };

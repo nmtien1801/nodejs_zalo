@@ -7,6 +7,8 @@ const socketInit = require("./socket/index");
 
 const ChatRoute = require("./routes/chatRoutes");
 
+const UploadRoutes = require("./routes/uploadRoute");
+
 const app = express();
 const server = http.createServer(app);
 
@@ -23,12 +25,11 @@ connectDB();
 
 AuthRoutes(app);
 ChatRoute(app);
+UploadRoutes(app);
 
 // =========================== Socket
 
 socketInit(server);
-
-
 
 // =================================================================
 app.use((req, res) => {
