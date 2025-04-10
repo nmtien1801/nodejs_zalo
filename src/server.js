@@ -5,7 +5,7 @@ const configCORS = require("./config/cors");
 const connectDB = require("./config/connectDB");
 const http = require("http");
 const socketInit = require("./socket/index");
-
+const path = require("path");
 const ChatRoute = require("./routes/chatRoutes");
 const RoomChatRoutes = require("./routes/roomChatRoutes");
 const FriendRequestRoutes = require("./routes/friendRequestRoutes");
@@ -20,6 +20,9 @@ configCORS(app);
 // Middleware để phân tích cú pháp JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Kết nối MongoDB
 connectDB();
