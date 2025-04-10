@@ -108,6 +108,10 @@ const handleRegister = async (rawData) => {
       username: rawData.username,
       password: hashPassWord(rawData.password),
       phone: rawData.phoneNumber,
+      gender: rawData.gender,
+      dob: rawData.dob,
+      avatar: rawData.avatar,
+      code: rawData.code
     };
 
     // Tạo tài khoản mới trong MongoDB
