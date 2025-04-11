@@ -102,7 +102,6 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
 
 const handleRegister = async (rawData) => {
   try {
-    console.log('>>>>>>>>>>>>> raw ',rawData);
     let isEmailExists = await checkEmailExists(rawData.email);
     if (isEmailExists) {
       return {

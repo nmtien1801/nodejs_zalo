@@ -42,7 +42,6 @@ const uploadAvatar = async (req, res) => {
 const uploadAvatarProfile = async (req, res) => {
   try {
     let {phone, avatar} = req.body;
-    console.log('body: ',req.body);
     
     let user = await RoomChat.findOne({ phone: phone });
     if(user){
@@ -67,7 +66,6 @@ const uploadAvatarProfile = async (req, res) => {
 
 const uploadAvatar2 = async (req, res) => {
   const { avatar } = req.body;
-console.log('avatar: ',req);
 
   const base64Data = avatar.split(',')[1];
   const buffer = Buffer.from(base64Data, 'base64');

@@ -56,8 +56,6 @@ const nonSecurePaths = [
   "/api/refreshToken",
   "/api/send-code",
   "/api/reset-password",
-  "/api/upload",
-  "/api/uploadAvatarProfile",
 ]; // kh check middleware url (1)
 
 // token từ BE sẽ lưu vào header bên FE
