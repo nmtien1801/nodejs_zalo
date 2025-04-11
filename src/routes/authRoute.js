@@ -24,6 +24,10 @@ const AuthRoutes = (app) => {
   router.get("/api/account", authController.getUserAccount);
   router.post("/api/refreshToken", authController.handleRefreshToken);
 
+  router.get("/user/getUserByPhone/:phone", authController.getUserByPhone);
+
+  router.post("/api/logout", authController.handleLogout);
+
   return app.use("", router);
 };
 
