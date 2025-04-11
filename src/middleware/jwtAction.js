@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const jwtUtils = require("../services/jwtUtils");
 require("dotenv").config();
+const RoomChat = require("../models/roomChat");
 
 const createJwt = (payload) => {
   //   let token = jwt.sign({ name: "Tien", address: "HCM" }, process.env.JWT_SECRET);
@@ -29,21 +30,35 @@ const createJwt_refreshToken = (payload) => {
   return token;
 };
 
-const verifyToken = (token) => {
+const verifyToken = async (token) => {
   let key = process.env.JWT_SECRET;
   let decoded = null;
   try {
     decoded = jwt.verify(token, key);
+    let user = await RoomChat.findOne({ phone: decoded.phone });
+
+    if (!user) return "verifyToken: UserNotFound";
+
+    return user;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       return "TokenExpiredError"; // jwt hết hạn
     }
     console.log(">>>check err verify token: ", error);
   }
-  return decoded;
 };
 
-const nonSecurePaths = ["/", "/api/login", "/api/logout", "/api/register", "/api/refreshToken", "/api/send-code", "/api/reset-password", "/api/upload", "/api/uploadAvatarProfile"]; // kh check middleware url (1)
+const nonSecurePaths = [
+  "/",
+  "/api/login",
+  "/api/logout",
+  "/api/register",
+  "/api/refreshToken",
+  "/api/send-code",
+  "/api/reset-password",
+  "/api/upload",
+  "/api/uploadAvatarProfile",
+]; // kh check middleware url (1)
 
 // token từ BE sẽ lưu vào header bên FE
 const extractToken = (req) => {
@@ -64,10 +79,9 @@ const checkUserJwt = async (req, res, next) => {
   if (tokenFromHeader) {
     // bug vừa vào đã check quyền xác thực khi chưa login của Context
     let access_Token = tokenFromHeader;
-    let decoded = verifyToken(access_Token);
+    let decoded = await verifyToken(access_Token);
 
     if (decoded && decoded !== "TokenExpiredError") {
-      
       req.user = decoded; // gán thêm .user(data cookie) vào req BE nhận từ FE
       req.access_Token = access_Token; // gán thêm .token(data cookie) vào req BE nhận từ FE
       next();

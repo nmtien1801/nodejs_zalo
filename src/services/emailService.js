@@ -29,6 +29,7 @@ let sendSimpleEmail = async (receiverEmail) => {
     });
 
     let code = Math.floor(100000 + Math.random() * 900000); // random code
+    const timestamp = Date.now(); // lấy thời gian hiện tại (ms)
 
     // gửi mail tới đối tượng chủ transporter
     const info = await transporter.sendMail({
@@ -37,7 +38,9 @@ let sendSimpleEmail = async (receiverEmail) => {
       subject: "Verification code", // Subject line
       html: getBodyHTMLEmail(receiverEmail, code), // html body -> lưu theo ngôn ngữ
     });
-    return code;
+    
+     // Trả về cả code và thời gian gửi
+    return { code, timestamp };
   } catch (error) {
     console.log("check Err send email: ", error);
     return null;

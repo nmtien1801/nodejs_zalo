@@ -15,6 +15,14 @@ const checkPhoneExists = async (userPhone) => {
   return false;
 };
 
+const checkEmailExists = async (emailUser) => {
+  let email = await RoomChat.findOne({ email: emailUser });
+  if (email) {
+    return true;
+  }
+  return false;
+};
+
 // hash password
 const salt = bcrypt.genSaltSync(10);
 const hashPassWord = (userPassWord) => {
@@ -94,10 +102,20 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
 
 const handleRegister = async (rawData) => {
   try {
+    console.log('>>>>>>>>>>>>> raw ',rawData);
+    let isEmailExists = await checkEmailExists(rawData.email);
+    if (isEmailExists) {
+      return {
+        EM: "your email is already exists",
+        EC: 1,
+        DT: "",
+      };
+    }
+
     let isPhoneExists = await checkPhoneExists(rawData.phoneNumber);
     if (isPhoneExists) {
       return {
-        EM: "your phone is already exists",
+        EM: "STK is already exists",
         EC: 1,
         DT: "",
       };

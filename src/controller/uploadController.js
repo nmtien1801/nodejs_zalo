@@ -67,7 +67,7 @@ const uploadAvatarProfile = async (req, res) => {
 
 const uploadAvatar2 = async (req, res) => {
   const { avatar } = req.body;
-console.log('avatar: ',avatar);
+console.log('avatar: ',req);
 
   const base64Data = avatar.split(',')[1];
   const buffer = Buffer.from(base64Data, 'base64');
