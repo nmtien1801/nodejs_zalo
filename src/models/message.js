@@ -52,7 +52,7 @@ const messageSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      default: "1",
+      default: "1",   // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
     }
   },
   { timestamps: true }

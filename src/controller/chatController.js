@@ -72,7 +72,7 @@ const saveMsg = async (data) => {
       isDeleted: false,
       isDeletedBySender: false,
       isDeletedByReceiver: false,
-      type: data.type || "1",
+      type: data.type || "1",    // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
     };
 
     const saveMsg = new Message(_data);
