@@ -66,16 +66,33 @@ const uploadAvatarProfile = async (req, res) => {
 
 const uploadAvatar2 = async (req, res) => {
   const { avatar, fileName, mimeType } = req.body;
+  console.log("req ", req.body);
+  console.log("req.file ", req.file);
 
-  const base64Data = avatar.split(",")[1];
-  const buffer = Buffer.from(base64Data, "base64");
-  const key = `media/${Date.now()}_${fileName}`;
+  let buffer;
+
+  // Trường hợp avatar là base64
+  if (typeof avatar === "string" && avatar.startsWith("data:")) {
+    const base64Data = avatar.split(",")[1];
+    buffer = Buffer.from(base64Data, "base64");
+  }
+  // Trường hợp avatar là file (gửi từ FormData)
+  else if (req.file) {
+    const filePath = req.file.path;
+    buffer = fs.readFileSync(filePath);
+  }
+  // Trường hợp không hợp lệ
+  else {
+    return res.status(400).json({ EM: "Invalid file format", EC: -1, DT: "" });
+  }
+
+  const key = `media/${Date.now()}_${fileName || req.file.originalname}`;
 
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
     Key: key,
     Body: buffer,
-    ContentType: mimeType,
+    ContentType: mimeType || req.file.mimetype,
     ACL: "public-read",
   });
 
