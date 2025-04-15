@@ -15,11 +15,41 @@ const getRefreshTokenByAccessToken = async (accessToken) => {
   }
 };
 
+const handledLogout = async (refreshToken) => {
+  try {
+    // Tìm session dựa trên userId và accessToken
+    const session = await Session.findOneAndDelete({
+      refresh_Token: refreshToken,
+    });
+
+    if (!session) {
+      return {
+        EM: "Session not found or already logged out", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    return {
+      EM: "Logout successful", // success message
+      EC: 0, // success code
+      DT: "", // no data
+    };
+  } catch (error) {
+    console.log(">>>> Error in logout: ", error);
+    return {
+      EM: "Something went wrong in the service", // error message
+      EC: -2, // error code
+      DT: "", // no data
+    };
+  }
+};
+
 const getUserByRefreshToken = async (refreshToken) => {
   try {
     let user = await Session.findOne({ refresh_Token: refreshToken }).populate({
       path: "roomChatID", // Đảm bảo rằng bạn đã có trường user là ObjectId tham chiếu đến RoomChat
-      select: "_id email username phone roleID", // Chỉ lấy những trường cần thiết
+      select: "_id email username phone roleID gender dob avatar", // Chỉ lấy những trường cần thiết
     });
 
     if (user) {
@@ -28,6 +58,9 @@ const getUserByRefreshToken = async (refreshToken) => {
         email: user.roomChatID.email,
         phone: user.roomChatID.phone,
         username: user.roomChatID.username,
+        gender: user.roomChatID.gender,
+        dob: user.roomChatID.dob,
+        avatar: user.roomChatID.avatar
       };
     }
     return null;
@@ -67,8 +100,19 @@ const updateUserRefreshToken = async (
   }
 };
 
+const deleteRefreshToken = async (accessToken) => {
+  try {
+    await Session.findOneAndDelete({ access_Token: accessToken });
+    console.log("Refresh token deleted successfully");
+  } catch (error) {
+    console.error("Error deleting refresh token: ", error);
+  }
+};
+
 module.exports = {
   getRefreshTokenByAccessToken,
   getUserByRefreshToken,
   updateUserRefreshToken,
+  deleteRefreshToken,
+  handledLogout,
 };

@@ -1,15 +1,16 @@
 const express = require("express");
 const AuthRoutes = require("./routes/authRoute");
+const UploadRoutes = require("./routes/uploadRoutes"); 
 const configCORS = require("./config/cors");
 const connectDB = require("./config/connectDB");
 const http = require("http");
 const socketInit = require("./socket/index");
-const uploadRoutes = require("./routes/uploadRoutes"); 
+const path = require("path");
 const ChatRoute = require("./routes/chatRoutes");
+const ProfileRoutes = require("./routes/ProfileRoutes");
 
 const app = express();
 const server = http.createServer(app);
-
 
 
 configCORS(app);
@@ -17,19 +18,21 @@ configCORS(app);
 // Middleware để phân tích cú pháp JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Kết nối MongoDB
 connectDB();
 
 AuthRoutes(app);
 ChatRoute(app);
+UploadRoutes(app)
+ProfileRoutes(app)
 
-app.use("/api", uploadRoutes); // => endpoint sẽ là /api/upload-avatar
 // =========================== Socket
 
 socketInit(server);
-
-
 
 // =================================================================
 app.use((req, res) => {

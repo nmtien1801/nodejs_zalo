@@ -14,7 +14,7 @@ const configCORS = (app) => {
 
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin); // Cho phép origin của request
+      res.setHeader("Access-Control-Allow-Origin", origin || "*");  // * dùng cho mobile
     }
 
     res.setHeader(
