@@ -6,7 +6,7 @@ const getConversations = async (req, res) => {
     const senderId = req.user._id;
     let data = await chatService.getConversations(senderId);
 
-    console.log("check getConversations", data);
+    // console.log("check getConversations", data);
 
     return res.status(200).json({
       EM: data.EM,

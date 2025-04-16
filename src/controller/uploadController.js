@@ -87,7 +87,7 @@ const uploadAvatarProfile = async (req, res) => {
 const uploadAvatar2 = async (req, res) => {
   const { avatar, fileName, mimeType } = req.body;
   // console.log("req ", req.body);
-  console.log("req.file ", req.file);
+  // console.log("req.file ", req.file);
 
   let buffer;
   let type;
