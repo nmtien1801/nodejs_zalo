@@ -5,17 +5,30 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/"); // nhớ tạo folder 'uploads' nếu chưa có
   },
-  filename: function (req, file, cb) {    
+
+  filename: function (req, file, cb) {
     cb(null, Date.now() + "_" + file.originalname);
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "video/mp4", "video/mpeg"];
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "video/mp4",
+    "video/mpeg",
+    "application/pdf", // PDF
+    "application/msword", // Word .doc
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word .docx
+    "text/plain", // Text file .txt
+  ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type. Only images and videos are allowed."), false);
+    cb(
+      new Error("Invalid file type. Only images and videos are allowed."),
+      false
+    );
   }
 };
 

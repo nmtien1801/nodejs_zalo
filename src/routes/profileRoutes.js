@@ -8,6 +8,7 @@ const router = express.Router();
  * @param {*} app : express app
  * @returns
  */
+
 const ProfileRoutes = (app) => {
   // Middleware
   router.all("*", checkUserJwt);
