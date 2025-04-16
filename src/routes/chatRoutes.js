@@ -19,6 +19,8 @@ const ChatRoutes = (app) => {
   app.post("/api/createConversationGroup", chatController.createConversationGroup);
   app.put("/api/messages/recall/:id", chatController.recallMsg); // Thu hồi tin nhắn 
   app.put("/api/messages/deleteForMe/:id", chatController.deleteMsgForMe); // Xóa chỉ ở phía tôi
+  app.post("/api/messages/handleReaction", chatController.handleReaction); // Xử lý phản ứng
+  app.get("/api/messages/:id/reactions", chatController.getReactionsByMessageId);
 
   return app.use("", router);
 };

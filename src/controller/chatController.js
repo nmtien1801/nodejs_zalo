@@ -291,6 +291,70 @@ const delMsg = async (req, res) => {
   }
 };
 
+const handleReaction = async (req, res) => {
+  try {
+    const { messageId, userId, emoji } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!messageId || !userId || !emoji) {
+      return res.status(400).json({
+        EM: "Missing required fields (messageId, userId, emoji)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để xử lý logic reaction
+    const result = await chatService.handleReaction(messageId, userId, emoji);
+
+    // Trả về kết quả từ service
+    return res.status(200).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in handleReaction controller: ", error);
+    return res.status(500).json({
+      EM: "Error handling reaction", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const getReactionsByMessageId = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!messageId) {
+      return res.status(400).json({
+        EM: "Message ID is required", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để lấy dữ liệu
+    const result = await chatService.getReactionsByMessageId(messageId);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in getReactionsByMessageId controller: ", error);
+    return res.status(500).json({
+      EM: "Error fetching reactions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   saveMsg,
@@ -298,5 +362,7 @@ module.exports = {
   delMsg,
   createConversationGroup,
   recallMsg,
-  deleteMsgForMe
+  deleteMsgForMe,
+  handleReaction,
+  getReactionsByMessageId
 };

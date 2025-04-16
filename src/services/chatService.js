@@ -1,6 +1,8 @@
 require("dotenv").config();
+const mongoose = require("mongoose");
 const Message = require("../models/message");
 const Conversation = require("../models/conversation");
+const ReactionMessage = require("../models/reactionMessage");
 
 const getConversations = async (senderId) => {
   try {
@@ -56,7 +58,116 @@ const createConversationGroup = async (nameGroup, avatarGroup, members) => {
   }
 }
 
+const getReactionsByMessageId = async (messageId) => {
+  try {
+    if (!messageId) {
+      return {
+        EM: "Message ID is required", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return {
+        EM: "Invalid messageId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Lấy tất cả reaction của messageId
+    const reactions = await ReactionMessage.find({ messageId }).populate({
+      path: "userId",
+      select: "_id username avatar", // Chỉ lấy các trường cần thiết của user
+    });
+
+    return {
+      EM: "Reactions fetched successfully", // success message
+      EC: 0, // success code
+      DT: reactions, // Dữ liệu các reaction
+    };
+  } catch (error) {
+    console.error("Error in getReactionsByMessageId: ", error);
+    return {
+      EM: "Error fetching reactions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const handleReaction = async (messageId, userId, emoji) => {
+  try {
+    if (!messageId || !userId || !emoji) {
+      return {
+        EM: "Missing required fields (messageId, userId, emoji)", // error message
+        EC: 1, // error code
+        DT: messageId + ", " + userId + ", " + emoji, // no data
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return {
+        EM: "Invalid messageId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Kiểm tra xem người dùng đã reaction cho tin nhắn này chưa
+    const existingReaction = await ReactionMessage.findOne({ messageId, userId });
+
+    if (existingReaction) {
+      if (existingReaction.emoji === emoji) {
+        // Nếu emoji giống nhau, xóa reaction
+        try {
+          await ReactionMessage.findByIdAndDelete(existingReaction._id);
+          return {
+            EM: "Reaction removed successfully", // success message
+            EC: 0, // success code
+            DT: null, // Không trả về dữ liệu
+          };
+        } catch (error) {
+          console.error("Error deleting reaction: ", error);
+          return {
+            EM: "Error deleting reaction", // error message
+            EC: -1, // error code
+            DT: "", // no data
+          };
+        }
+      } else {
+        // Nếu emoji khác nhau, cập nhật reaction
+        existingReaction.emoji = emoji;
+        await existingReaction.save();
+        return {
+          EM: "Reaction updated successfully", // success message
+          EC: 0, // success code
+          DT: existingReaction, // Trả về reaction đã cập nhật
+        };
+      }
+    } else {
+      // Nếu chưa có reaction, thêm mới
+      const newReaction = await ReactionMessage.create({ messageId, userId, emoji });
+      return {
+        EM: "Reaction added successfully", // success message
+        EC: 0, // success code
+        DT: newReaction, // Trả về reaction vừa thêm
+      };
+    }
+  } catch (error) {
+    console.error("Error in handleReaction: ", error);
+    return {
+      EM: "Error handling reaction", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
 module.exports = {
   getConversations,
-  createConversationGroup
+  createConversationGroup,
+  handleReaction,
+  getReactionsByMessageId
 };
