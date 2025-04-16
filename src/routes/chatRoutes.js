@@ -17,6 +17,8 @@ const ChatRoutes = (app) => {
   app.get("/api/getConversations/:senderId", chatController.getConversations);
   app.delete("/api/delMsg/:id", chatController.delMsg);
   app.post("/api/createConversationGroup", chatController.createConversationGroup);
+  app.put("/api/messages/recall/:id", chatController.recallMsg); // Thu hồi tin nhắn 
+  app.put("/api/messages/deleteForMe/:id", chatController.deleteMsgForMe); // Xóa chỉ ở phía tôi
 
   return app.use("", router);
 };
