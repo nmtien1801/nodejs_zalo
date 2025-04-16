@@ -2,29 +2,38 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const Message = require("../models/message");
 const Conversation = require("../models/conversation");
+const RoomChat = require("../models/roomChat");
 
 const getConversations = async (senderId) => {
   try {
-    // lấy ds Conversation
+    // Lấy danh sách Conversation
     const conversations = await Conversation.find({
       "sender._id": senderId,
     });
 
+    // Thêm trường avatar vào từng conversation
+    const updatedConversations = await Promise.all(
+      conversations.map(async (conversation) => {
+        const user = await RoomChat.findById(conversation.receiver._id);
+        conversation.avatar = user?.avatar || null; // Gán avatar hoặc null nếu không tìm thấy
+        return conversation;
+      })
+    );
+
     return {
       EM: "ok! getConversations",
       EC: 0,
-      DT: conversations,
+      DT: updatedConversations,
     };
   } catch (error) {
     console.log("check getConversations service", error);
-    return res.status(500).json({
-      EM: "error getConversations service", //error message
-      EC: 2, //error code
-      DT: "", // data
-    });
+    return {
+      EM: "error getConversations service", // error message
+      EC: 2, // error code
+      DT: "", // no data
+    };
   }
 };
-
 // const getConversationsByMember = async (userId) => {
 //   try {
 //     // Kiểm tra userId có hợp lệ không

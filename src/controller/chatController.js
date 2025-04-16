@@ -59,7 +59,7 @@ const createConversationGroup = async (req, res) => {
 
     return res.status(200).json({
       EM: data.EM,
-      EC: data.EC, 
+      EC: data.EC,
       DT: data.DT,
     });
   } catch (err) {
@@ -71,6 +71,7 @@ const createConversationGroup = async (req, res) => {
     });
   }
 };
+
 
 const saveMsg = async (data) => {
   try {
@@ -132,19 +133,19 @@ const getMsg = async (req, res) => {
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
         $or: [
-          { 
+          {
             $and: [
-              { "sender._id": sender }, 
+              { "sender._id": sender },
               { "receiver._id": receiver },
               { isDeletedBySender: false }
-            ] 
+            ]
           },
-          { 
+          {
             $and: [
               { "sender._id": receiver },
               { "receiver._id": sender },
               { isDeletedByReceiver: false }
-            ] 
+            ]
           },
         ]
       });
@@ -153,14 +154,14 @@ const getMsg = async (req, res) => {
         if (msg.isDeleted) {
           return {
             _id: msg._id,
-            msg: "Tin nhắn đã được thu hồi", 
+            msg: "Tin nhắn đã được thu hồi",
             sender: msg.sender,
             receiver: msg.receiver,
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
             isDeletedByReceiver: msg.isDeletedByReceiver,
-            type: "system", 
+            type: "system",
             createdAt: msg.createdAt,
             updatedAt: msg.updatedAt,
           };
