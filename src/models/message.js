@@ -34,6 +34,26 @@ const messageSchema = new mongoose.Schema(
         required: true,
       },
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    isDeletedBySender: {
+      type: Boolean,
+      default: false,
+    },
+    isDeletedByReceiver: {
+      type: Boolean,
+      default: false,
+    },
+    type: {
+      type: String,
+      default: "text",   // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
+    }
   },
   { timestamps: true }
 );

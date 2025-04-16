@@ -5,11 +5,14 @@ const sendFriendRequest = async (req, res) => {
     try {
         let data = await friendRequestService.sendFriendRequest(
             {
-                fromUser: req.user.phone,
+                fromUser: req.user._id,
                 toUser: req.body.toUser,
                 content: req.body.content,
             }
         );
+
+        console.log('check sendFriendRequest', data);
+
 
         return res.status(200).json({
             EM: data.EM,
@@ -70,7 +73,7 @@ const acceptFriendRequest = async (req, res) => {
 
 const getFriendRequests = async (req, res) => {
     try {
-        let data = await friendRequestService.getFriendRequests(req.user.phone);
+        let data = await friendRequestService.getFriendRequests(req.user._id);
 
         return res.status(200).json({
             EM: data.EM,
@@ -87,8 +90,76 @@ const getFriendRequests = async (req, res) => {
     }
 }
 
+const rejectFriendRequest = async (req, res) => {
+    try {
+        const _id = req.params.id;
+        const data = await friendRequestService.rejectFriendRequest(_id);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check rejectFriendRequest server', err);
+        return res.status(500).json({
+            EM: 'error rejectFriendRequest', //error message
+            EC: 2, //error code
+            DT: '', // data
+        });
+    }
+}
+
+const getFriendRequestByFromUserAndToUser = async (req, res) => {
+
+    try {
+        const fromUser = req.user._id;
+        const toUser = req.params.fromUserId;
+
+
+
+        const data = await friendRequestService.getFriendRequestByFromUserAndToUser(fromUser, toUser);
+
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check getFriendRequestByFromUserAndToUser server', err);
+        return res.status(500).json({
+            EM: 'error getFriendRequestByFromUserAndToUser', //error message
+            EC: 2, //error code
+            DT: '', // data
+        });
+    }
+}
+
+const cancelFriendRequest = async (req, res) => {
+    try {
+        const requestId = req.params.id;
+        const data = await friendRequestService.cancelFriendRequest(requestId);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check cancelFriendRequest server', err);
+        return res.status(500).json({
+            EM: 'error cancelFriendRequest', //error message
+            EC: 2, //error code
+            DT: '', // data
+        });
+    }
+}
+
+
+
 module.exports = {
     sendFriendRequest,
     getFriendRequests,
     acceptFriendRequest,
+    rejectFriendRequest,
+    getFriendRequestByFromUserAndToUser,
+    cancelFriendRequest,
 }

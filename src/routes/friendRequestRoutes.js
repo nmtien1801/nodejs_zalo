@@ -14,8 +14,10 @@ const FriendRequestRoutes = (app) => {
 
     app.post("/api/sendRequestFriend", friendRequestController.sendFriendRequest);
     app.post("/api/acceptFriendRequest/:id", friendRequestController.acceptFriendRequest);
-    // app.post("/api/rejectFriendRequest", friendRequestController.rejectFriendRequest);
+    app.post("/api/rejectFriendRequest/:id", friendRequestController.rejectFriendRequest);
     app.get("/api/getFriendRequests", friendRequestController.getFriendRequests);
+    app.get("/api/getFriendRequestByFromUserAndToUser/:fromUserId", friendRequestController.getFriendRequestByFromUserAndToUser);
+    app.post("/api/cancelFriendRequest/:id", friendRequestController.cancelFriendRequest);
 
     return app.use("", router);
 };

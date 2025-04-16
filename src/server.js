@@ -9,10 +9,11 @@ const path = require("path");
 const ChatRoute = require("./routes/chatRoutes");
 const RoomChatRoutes = require("./routes/roomChatRoutes");
 const FriendRequestRoutes = require("./routes/friendRequestRoutes");
+const ProfileRoutes = require("./routes/profileRoutes");
+const FriendShipRoutes = require("./routes/friendShipRoute");
 
 const app = express();
 const server = http.createServer(app);
-
 
 
 configCORS(app);
@@ -32,12 +33,12 @@ ChatRoute(app);
 RoomChatRoutes(app);
 FriendRequestRoutes(app);
 UploadRoutes(app)
+ProfileRoutes(app)
+FriendShipRoutes(app);
 
 // =========================== Socket
 
 socketInit(server);
-
-
 
 // =================================================================
 app.use((req, res) => {

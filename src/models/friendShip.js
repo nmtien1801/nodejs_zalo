@@ -5,10 +5,12 @@ const friendShipSchema = new mongoose.Schema(
         user1: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
+            ref: "RoomChat",
         },
         user2: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
+            ref: "RoomChat",
         },
         status: {
             type: Number,

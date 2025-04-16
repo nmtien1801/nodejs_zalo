@@ -2,17 +2,15 @@ const mongoose = require("mongoose");
 
 const friendRequestSchema = new mongoose.Schema(
     {
-        // _id: {
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     required: true,
-        // },
         fromUser: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
             required: true,
+            ref: "RoomChat",
         },
         toUser: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
             required: true,
+            ref: "RoomChat",
         },
         status: {
             type: Number,
@@ -21,7 +19,7 @@ const friendRequestSchema = new mongoose.Schema(
         },
         content: {
             type: String,
-            required: true,
+            required: false,
         },
         sent_at: {
             type: Date,

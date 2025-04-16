@@ -18,10 +18,15 @@ const AuthRoutes = (app) => {
   app.post("/api/send-code", authController.sendCode);
   app.post("/api/reset-password", authController.resetPassword);
   app.post("/api/changePassword", authController.changePassword);
+  app.post("/api/verifyEmail", authController.verifyEmail);
 
   // router.post("/api/logout", authController.handleLogout);
   router.get("/api/account", authController.getUserAccount);
   router.post("/api/refreshToken", authController.handleRefreshToken);
+
+  router.get("/user/getUserByPhone/:phone", authController.getUserByPhone);
+
+  router.post("/api/logout", authController.handleLogout);
 
   return app.use("", router);
 };

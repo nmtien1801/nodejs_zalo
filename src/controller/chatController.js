@@ -28,21 +28,54 @@ const getConversationsByMember = async (req, res) => {
     const { senderId } = req.params;
     let data = await chatService.getConversationsByMember(senderId);
 
-    return res.status(200).json({
-      EM: data.EM,
-      EC: data.EC,
-      DT: data.DT,
-    });
   } catch (err) {
     console.log("check getConversationsByMember server", err);
     return res.status(500).json({
       EM: "error getConversationsByMember", //error message
       EC: 2, //error code
       DT: "", // data
+
     });
   }
 };
 
+const createConversationGroup = async (req, res) => {
+  try {
+    const { nameGroup, avatarGroup, members } = req.body; // Lấy dữ liệu từ body request
+
+    console.log("Tên nhóm:", nameGroup);
+    console.log("Avatar nhóm:", avatarGroup);
+    console.log("Danh sách thành viên:", members);
+
+    if (!nameGroup || !members || members.length === 0) {
+      return res.status(400).json({
+        EM: "Missing required fields (nameGroup or members)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    let data = await chatService.createConversationGroup(
+      nameGroup,
+      avatarGroup,
+      members
+    );
+
+    return res.status(200).json({
+      EM: data.EM,
+      EC: data.EC,
+      DT: data.DT,
+    });
+  } catch (err) {
+    console.log("check createConversationGroup server", err);
+    return res.status(500).json({
+      EM: "Error creating conversation group", // error message
+      EC: 2, // error code
+      DT: "", // no data
+
+    });
+  }
+};
 const saveMsg = async (data) => {
   try {
     const _data = {
@@ -57,6 +90,11 @@ const saveMsg = async (data) => {
         name: data.receiver.username,
         phone: data.receiver.phone,
       },
+      isRead: false,
+      isDeleted: false,
+      isDeletedBySender: false,
+      isDeletedByReceiver: false,
+      type: data.type || "1", // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
     };
 
     const saveMsg = new Message(_data);
@@ -65,11 +103,11 @@ const saveMsg = async (data) => {
     return saveMsg;
   } catch (error) {
     console.log(">>>> check saveMsg server", error);
-    return res.status(500).json({
+    return {
       EM: "error saveMsg", //error message
       EC: 2, //error code
       DT: "", // data
-    });
+    };
   }
 };
 
@@ -151,4 +189,5 @@ module.exports = {
   saveMsg,
   getMsg,
   delMsg,
+  createConversationGroup,
 };

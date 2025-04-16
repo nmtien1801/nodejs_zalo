@@ -15,6 +15,14 @@ const checkPhoneExists = async (userPhone) => {
   return false;
 };
 
+const checkEmailExists = async (emailUser) => {
+  let email = await RoomChat.findOne({ email: emailUser });
+  if (email) {
+    return true;
+  }
+  return false;
+};
+
 // hash password
 const salt = bcrypt.genSaltSync(10);
 const hashPassWord = (userPassWord) => {
@@ -94,10 +102,19 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
 
 const handleRegister = async (rawData) => {
   try {
+    let isEmailExists = await checkEmailExists(rawData.email);
+    if (isEmailExists) {
+      return {
+        EM: "your email is already exists",
+        EC: 1,
+        DT: "",
+      };
+    }
+
     let isPhoneExists = await checkPhoneExists(rawData.phoneNumber);
     if (isPhoneExists) {
       return {
-        EM: "your phone is already exists",
+        EM: "STK is already exists",
         EC: 1,
         DT: "",
       };
@@ -241,6 +258,63 @@ const changePassword = async (phone, currentPassword, newPassword) => {
   }
 };
 
+const updateAvatar = async (userId, avatarUrl) => {
+  try {
+    // Tìm user theo ID
+    const user = await RoomChat.findById(userId);
+
+    if (!user) {
+      return {
+        EM: "User not found", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Cập nhật avatar
+    user.avatar = avatarUrl;
+    await user.save();
+
+    return {
+      EM: "Avatar updated successfully", // success message
+      EC: 0, // success code
+      DT: user, // trả về thông tin user sau khi cập nhật
+    };
+  } catch (error) {
+    console.log(">>>> Error in updateAvatar: ", error);
+    return {
+      EM: "Something went wrong in the service", // error message
+      EC: -2, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const findUserByPhone = async (phone) => {
+  try {
+    const user = await RoomChat.findOne({ phone: phone });
+    if (user) {
+      return {
+        EM: "User found", // success message
+        EC: 0, // success code
+        DT: user, // user data
+      };
+    }
+    return {
+      EM: `Phone number ${phone} is not found in the system`, // error message
+      EC: 1, // error code
+      DT: "", // no data
+    };
+  } catch (error) {
+    console.log(">>>> Error in findUserByPhone: ", error);
+    return {
+      EM: "Something went wrong in the service", // error message
+      EC: -2, // error code
+      DT: "", // no data
+    };
+  }
+};
+
 module.exports = {
   handleLogin,
   hashPassWord,
@@ -249,4 +323,6 @@ module.exports = {
   updatePassword,
   updateCode,
   changePassword,
+  findUserByPhone,
+  updateAvatar
 };

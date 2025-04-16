@@ -51,7 +51,7 @@ const socketInit = (server) => {
       console.log("MSG FROM FRONTEND", msg);
       const isSaved = await saveMsg(msg);
 
-      if (msg.receiver.type === 1) {
+      if (msg.receiver.type === 1 || msg.receiver.type === 3) {
         // chat đơn 
         io.to(msg.receiver.socketId)
           .to(msg.sender.socketId)
