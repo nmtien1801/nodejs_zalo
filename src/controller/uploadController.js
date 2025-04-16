@@ -1,13 +1,15 @@
 const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const fs = require("fs");
 
-const MAX_SIZE = 100 * 1024 * 1024; // 5MB
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 const s3 = require("../config/s3Config");
 const RoomChat = require("../models/roomChat");
 
 const uploadAvatar = async (req, res) => {
   const file = req.file;
+  console.log('>>>>> file ', req.file);
+  
   if (!file) {
     return res.status(400).json({
       EM: "No file uploaded",
@@ -19,7 +21,7 @@ const uploadAvatar = async (req, res) => {
   if (file.size > MAX_SIZE) {
     fs.unlinkSync(file.path); // xóa file tạm ngay nếu không hợp lệ
     return res.status(400).json({
-      EM: "File size exceeds 5MB limit",
+      EM: "File size exceeds 100MB limit",
       EC: -1,
       DT: "",
     });
