@@ -3,8 +3,10 @@ const Message = require("../models/message");
 
 const getConversations = async (req, res) => {
   try {
-    const { senderId } = req.params;
+    const senderId = req.user._id;
     let data = await chatService.getConversations(senderId);
+
+    console.log("check getConversations", data);
 
     return res.status(200).json({
       EM: data.EM,
@@ -17,6 +19,22 @@ const getConversations = async (req, res) => {
       EM: "error getConversations", //error message
       EC: 2, //error code
       DT: "", // data
+    });
+  }
+};
+
+const getConversationsByMember = async (req, res) => {
+  try {
+    const { senderId } = req.params;
+    let data = await chatService.getConversationsByMember(senderId);
+
+  } catch (err) {
+    console.log("check getConversationsByMember server", err);
+    return res.status(500).json({
+      EM: "error getConversationsByMember", //error message
+      EC: 2, //error code
+      DT: "", // data
+
     });
   }
 };
@@ -36,7 +54,6 @@ const createConversationGroup = async (req, res) => {
         DT: "", // no data
       });
     }
-
 
     let data = await chatService.createConversationGroup(nameGroup, avatarGroup, members);
 
@@ -291,8 +308,11 @@ const delMsg = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   getConversations,
+  getConversationsByMember,
   saveMsg,
   getMsg,
   delMsg,
