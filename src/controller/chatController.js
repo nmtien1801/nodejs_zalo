@@ -37,15 +37,12 @@ const createConversationGroup = async (req, res) => {
       });
     }
 
-    let data = await chatService.createConversationGroup(
-      nameGroup,
-      avatarGroup,
-      members
-    );
+
+    let data = await chatService.createConversationGroup(nameGroup, avatarGroup, members);
 
     return res.status(200).json({
       EM: data.EM,
-      EC: data.EC,
+      EC: data.EC, 
       DT: data.DT,
     });
   } catch (err) {
@@ -76,7 +73,7 @@ const saveMsg = async (data) => {
       isDeleted: false,
       isDeletedBySender: false,
       isDeletedByReceiver: false,
-      type: data.type || "1", // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
+      type: data.type || "text",    // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
     };
 
     const saveMsg = new Message(_data);

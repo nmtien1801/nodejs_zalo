@@ -7,7 +7,7 @@ const uploadProfile = async (data) => {
     
     let user = await RoomChat.findOne({ phone: data.phone });
     if (user) {
-      user.avatarN = data.avatar;
+      user.avatar = data.avatar;
       user.username = data.username;
       user.dob = data.dob;
       user.gender = data.gender;

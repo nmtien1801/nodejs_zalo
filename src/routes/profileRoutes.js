@@ -8,7 +8,8 @@ const router = express.Router();
  * @param {*} app : express app
  * @returns
  */
-const ChatRoutes = (app) => {
+
+const ProfileRoutes = (app) => {
   // Middleware
   router.all("*", checkUserJwt);
 
@@ -17,4 +18,4 @@ const ChatRoutes = (app) => {
   return app.use("", router);
 };
 
-module.exports = ChatRoutes;
+module.exports = ProfileRoutes;
