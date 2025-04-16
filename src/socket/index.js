@@ -59,17 +59,22 @@ const socketInit = (server) => {
       } else if (msg.receiver.type === 2) {
         // chat nhóm
         const groupMembers = msg.receiver.members || [];
-        console.log('>>>>>>>> groupMembers ', groupMembers);
-
         groupMembers.forEach((memberId) => {
           const member = users[memberId];
-          console.log('>>>>>>>> member ', member);
-          
           if (member && member.socketId) {
             io.to(member.socketId).emit("RECEIVED_MSG", isSaved);
           }
         });
       }
+    });
+
+    socket.on("RECALL", (msg) => {
+      let senderId = msg.sender._id
+      let receiverId = msg.receiver._id
+
+      io.to(users[senderId].socketId)
+      .to(users[receiverId].socketId)
+      .emit("RECALL_MSG", msg);
     });
 
     socket.on("DELETE_MSG", (msg) => {
