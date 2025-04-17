@@ -58,6 +58,8 @@ const socketInit = (server) => {
           .emit("RECEIVED_MSG", isSaved);
       } else if (msg.receiver.type === 2) {
         // chat nhóm
+        console.log('>>>>>>>>>> msg ', msg);
+        
         const groupMembers = msg.receiver.members || [];
         groupMembers.forEach((memberId) => {
           const member = users[memberId];
