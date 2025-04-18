@@ -27,14 +27,12 @@ const getConversationsByMember = async (req, res) => {
   try {
     const { senderId } = req.params;
     let data = await chatService.getConversationsByMember(senderId);
-
   } catch (err) {
     console.log("check getConversationsByMember server", err);
     return res.status(500).json({
       EM: "error getConversationsByMember", //error message
       EC: 2, //error code
       DT: "", // data
-
     });
   }
 };
@@ -55,7 +53,11 @@ const createConversationGroup = async (req, res) => {
       });
     }
 
-    let data = await chatService.createConversationGroup(nameGroup, avatarGroup, members);
+    let data = await chatService.createConversationGroup(
+      nameGroup,
+      avatarGroup,
+      members
+    );
 
     return res.status(200).json({
       EM: data.EM,
@@ -71,7 +73,6 @@ const createConversationGroup = async (req, res) => {
     });
   }
 };
-
 
 const saveMsg = async (data) => {
   try {
@@ -91,7 +92,7 @@ const saveMsg = async (data) => {
       isDeleted: false,
       isDeletedBySender: false,
       isDeletedByReceiver: false,
-      type: data.type || "text",    // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
+      type: data.type || "text", // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
     };
 
     const saveMsg = new Message(_data);
@@ -137,17 +138,17 @@ const getMsg = async (req, res) => {
             $and: [
               { "sender._id": sender },
               { "receiver._id": receiver },
-              { isDeletedBySender: false }
-            ]
+              { isDeletedBySender: false },
+            ],
           },
           {
             $and: [
               { "sender._id": receiver },
               { "receiver._id": sender },
-              { isDeletedByReceiver: false }
-            ]
+              { isDeletedByReceiver: false },
+            ],
           },
-        ]
+        ],
       });
 
       allMsg = allMsg.map((msg) => {
@@ -228,9 +229,11 @@ const recallMsg = async (req, res) => {
 
 const deleteMsgForMe = async (req, res) => {
   const { id } = req.params; // Lấy ID tin nhắn từ params
-  const { userId } = req.body; // Lấy ID người dùng từ body request
+  const member = req.body; // Lấy ID người dùng từ body request
+  console.log(">>>>>>>>>> member ", member);
+
   try {
-    if (!id || !userId) {
+    if (!id || !member) {
       return res.status(400).json({
         EM: "Message ID and User ID are required", // error message
         EC: 1, // error code
@@ -250,12 +253,21 @@ const deleteMsgForMe = async (req, res) => {
     }
 
     // Kiểm tra người dùng là người gửi hay người nhận
-    if (message.sender._id.toString() === userId) {
+    if (message.sender._id.toString() === member._id) {
       // Người gửi xóa tin nhắn
       message.isDeletedBySender = true;
-    } else if (message.receiver._id.toString() === userId) {
+    } else if (message.receiver._id.toString() === member._id) {
       // Người nhận xóa tin nhắn
-      message.isDeletedByReceiver = true;
+      if (member.type && member.memberDel) {
+        // xóa nhóm
+        await Message.updateMany(
+          { "receiver._id": member._id }, // điều kiện tìm messages
+          {  $addToSet: { memberDel: member.memberDel }  } // cập nhật trường
+        );
+      } else {
+        // xóa 1 - 1
+        message.isDeletedByReceiver = true;
+      }
     } else {
       return res.status(403).json({
         EM: "You are not authorized to delete this message", // error message
@@ -309,8 +321,6 @@ const delMsg = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -319,5 +329,5 @@ module.exports = {
   delMsg,
   createConversationGroup,
   recallMsg,
-  deleteMsgForMe
+  deleteMsgForMe,
 };

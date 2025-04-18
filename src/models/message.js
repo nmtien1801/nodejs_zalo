@@ -52,8 +52,14 @@ const messageSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      default: "text",   // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
-    }
+      default: "text", // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
+    },
+    memberDel: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );
