@@ -52,13 +52,13 @@ const socketInit = (server) => {
       const isSaved = await saveMsg(msg);
 
       if (msg.receiver.type === 1 || msg.receiver.type === 3) {
-        // chat đơn 
+        // chat đơn
         io.to(msg.receiver.socketId)
           .to(msg.sender.socketId)
           .emit("RECEIVED_MSG", isSaved);
       } else if (msg.receiver.type === 2) {
         // chat nhóm
-        
+
         const groupMembers = msg.receiver.members || [];
         groupMembers.forEach((memberId) => {
           const member = users[memberId];
@@ -70,12 +70,22 @@ const socketInit = (server) => {
     });
 
     socket.on("RECALL", (msg) => {
-      let senderId = msg.sender._id
-      let receiverId = msg.receiver._id
-
-      io.to(users[senderId].socketId)
-      .to(users[receiverId].socketId)
-      .emit("RECALL_MSG", msg);
+      let senderId = msg.sender._id;
+      let receiverId = msg.receiver._id;
+    
+      if (users[receiverId]?.socketId && msg.receiver?.members.length === 0) {
+        io.to(users[senderId].socketId)
+        .to(users[receiverId].socketId)
+        .emit("RECALL_MSG", msg);
+      }else{
+        const groupMembers = msg.receiver.members || [];
+        groupMembers.forEach((memberId) => {
+          const member = users[memberId];
+          if (member && member.socketId) {
+            io.to(member.socketId).emit("RECALL_MSG", msg);
+          }
+        });
+      }
     });
 
     socket.on("DELETE_MSG", (msg) => {

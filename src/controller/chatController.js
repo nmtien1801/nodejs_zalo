@@ -87,6 +87,7 @@ const saveMsg = async (data) => {
         _id: data.receiver._id,
         name: data.receiver.username,
         phone: data.receiver.phone,
+        members: data.receiver.members,
       },
       isRead: false,
       isDeleted: false,
@@ -230,7 +231,6 @@ const recallMsg = async (req, res) => {
 const deleteMsgForMe = async (req, res) => {
   const { id } = req.params; // Lấy ID tin nhắn từ params
   const member = req.body; // Lấy ID người dùng từ body request
-  console.log(">>>>>>>>>> member ", member);
 
   try {
     if (!id || !member) {
@@ -262,7 +262,7 @@ const deleteMsgForMe = async (req, res) => {
         // xóa nhóm
         await Message.updateMany(
           { "receiver._id": member._id }, // điều kiện tìm messages
-          {  $addToSet: { memberDel: member.memberDel }  } // cập nhật trường
+          { $addToSet: { memberDel: member.memberDel } } // cập nhật trường
         );
       } else {
         // xóa 1 - 1

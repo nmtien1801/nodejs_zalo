@@ -33,6 +33,12 @@ const messageSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+      members: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          required: false,
+        },
+      ],
     },
     isRead: {
       type: Boolean,
