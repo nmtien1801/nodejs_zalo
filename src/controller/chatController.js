@@ -129,8 +129,27 @@ const getMsg = async (req, res) => {
       // Tin nhắn nhóm
       allMsg = await Message.find({
         "receiver._id": receiver,
-        isDeleted: false,
       });
+
+      allMsg = allMsg.map((msg) => {
+        if (msg.isDeleted) {
+          return {
+            _id: msg._id,
+            msg: "Tin nhắn đã được thu hồi",
+            sender: msg.sender,
+            receiver: msg.receiver,
+            isRead: msg.isRead,
+            isDeleted: msg.isDeleted,
+            isDeletedBySender: msg.isDeletedBySender,
+            isDeletedByReceiver: msg.isDeletedByReceiver,
+            type: "system",
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt,
+          };
+        }
+        return msg;
+      });
+    
     } else {
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
