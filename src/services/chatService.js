@@ -34,36 +34,6 @@ const getConversations = async (senderId) => {
     };
   }
 };
-// const getConversationsByMember = async (userId) => {
-//   try {
-//     // Kiểm tra userId có hợp lệ không
-//     if (!mongoose.isValidObjectId(userId)) {
-//       throw new Error('ID thành viên không hợp lệ');
-//     }
-
-//     // Tìm các conversation mà userId có trong mảng members
-//     const conversations = await Conversation.find({
-//       members: {
-//         $in: [new mongoose.Types.ObjectId(userId)]
-//       }
-//     })
-//       .sort({ createdAt: -1 }); // Sắp xếp mới nhất trước
-//     console.log("check getConversationsByMember", conversations);
-
-//     return {
-//       EM: "ok! getConversationById",
-//       EC: 0,
-//       DT: conversations,
-//     };
-//   } catch (error) {
-//     console.log("check getConversationById service", error);
-//     return res.status(500).json({
-//       EM: "error getConversationById service", //error message
-//       EC: 2, //error code
-//       DT: "", // data
-//     });
-//   }
-// };
 
 const getConversationsByMember = async (userId) => {
   try {

@@ -1,0 +1,49 @@
+'start: ALT + D
+
+@startuml
+' Sắp xếp layout theo chiều dọc
+' Đảm bảo các đối tượng sẽ xếp thẳng hàng từ trên xuống dưới
+left to right direction
+actor User
+
+package "Quản lý tài khoản" {
+  User --> (Đăng ký)
+  User --> (Đăng nhập)
+  User --> (Quên mật khẩu)
+  User --> (Đổi mật khẩu)
+  User --> (Cập nhật hồ sơ)
+  User --> (Cập nhật ảnh đại diện)
+}
+
+package "Chat đơn (1-1)" {
+  User --> (Tìm kiếm người dùng)
+  User --> (Thêm bạn)
+  User --> (Xóa bạn)
+  User --> (Gửi tin nhắn văn bản)
+  User --> (Gửi emoji)
+  User --> (Gửi file)
+  User --> (Thu hồi tin nhắn)
+  User --> (Xoá tin nhắn)
+  User --> (Chuyển tiếp tin nhắn)
+  User --> (Xem trạng thái tin nhắn)
+}
+
+package "Chat nhóm" {
+  User --> (Tạo nhóm)
+  User --> (Mời thành viên)
+  User --> (Rời nhóm / Xoá thành viên)
+  User --> (Giải tán nhóm)
+  User --> (Phân quyền thành viên)
+  User --> (Gửi tin nhắn nhóm)
+  User --> (Gửi file / emoji nhóm)
+  User --> (Thu hồi / Xoá / Chuyển tiếp nhóm)
+}
+
+package "Nâng cao" {
+  User --> (Gửi nhiều ảnh/video)
+  User --> (Sticker / Nhãn dán)
+  User --> (Gọi video/âm thanh)
+}
+@enduml
+
+

@@ -27,7 +27,7 @@ const conversationSchema = new mongoose.Schema(
     startTime: { type: Date, required: false },
     endTime: { type: Date },
     avatar: { type: String, required: false },
-    type: { type: Number, required: false },
+    type: { type: Number, required: false },  // 1 - person, 2 - group, 3 - cloud
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -35,6 +35,7 @@ const conversationSchema = new mongoose.Schema(
         ref: "RoomChat",
       },
     ],
+    role: { type: String, default: "member" }, // leader - deputy - member
   },
   { timestamps: true }
 );
