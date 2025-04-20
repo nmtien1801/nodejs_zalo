@@ -199,7 +199,7 @@ const acceptFriendRequest = async (_id) => {
         return {
             EM: "ok! acceptFriendRequest",
             EC: 0,
-            DT: "",
+            DT: newFriendShip,
         };
     } catch (error) {
 

@@ -72,12 +72,12 @@ const socketInit = (server) => {
     socket.on("RECALL", (msg) => {
       let senderId = msg.sender._id;
       let receiverId = msg.receiver._id;
-    
+
       if (users[receiverId]?.socketId && msg.receiver?.members.length === 0) {
         io.to(users[senderId].socketId)
-        .to(users[receiverId].socketId)
-        .emit("RECALL_MSG", msg);
-      }else{
+          .to(users[receiverId].socketId)
+          .emit("RECALL_MSG", msg);
+      } else {
         const groupMembers = msg.receiver.members || [];
         groupMembers.forEach((memberId) => {
           const member = users[memberId];
@@ -232,6 +232,48 @@ const socketInit = (server) => {
       } else {
         console.log("Target user not online:", targetUserId);
       }
+    });
+
+    // thêm bạn
+    socket.on("REQ_ADD_fRIEND", async (response) => {
+      // người dùng onl
+      if (users[response.toUser].socketId) {
+        io.to(users[response.fromUser].socketId)
+          .to(users[response.toUser].socketId)
+          .emit("RES_ADD_FRIEND");
+      }
+      // người dùng off
+      else {
+        io.to(users[response.fromUser].socketId).emit("RES_ADD_FRIEND");
+      }
+    });
+
+    // hủy lời mời
+    socket.on("REQ_CANCEL_fRIEND", async (response) => {
+      io.to(users[response.fromUser].socketId)
+        .to(users[response.toUser].socketId)
+        .emit("RES_CANCEL_FRIEND");
+    });
+
+    // từ chối lời mời
+    socket.on("REQ_REJECT_fRIEND", async (response) => {
+      io.to(users[response.fromUser].socketId)
+        .to(users[response.toUser].socketId)
+        .emit("RES_REJECT_FRIEND");
+    });
+
+    // chấp nhận lời mời
+    socket.on("REQ_ACCEPT_FRIEND", async (response) => {
+      io.to(users[response.user1].socketId)
+        .to(users[response.user2].socketId)
+        .emit("RES_ACCEPT_FRIEND");
+    });
+
+    // xóa bạn
+    socket.on("REQ_DELETE_FRIEND", async (response) => {
+      io.to(users[response.user1].socketId)
+        .to(users[response.user2].socketId)
+        .emit("RES_DELETE_FRIEND");
     });
 
     socket.on("disconnect", () => {
