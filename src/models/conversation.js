@@ -21,13 +21,14 @@ const conversationSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+      permission: { type: [Number], required: false },
     },
     message: { type: String, required: false },
     time: { type: String, required: false },
     startTime: { type: Date, required: false },
     endTime: { type: Date },
     avatar: { type: String, required: false },
-    type: { type: Number, required: false },  // 1 - person, 2 - group, 3 - cloud
+    type: { type: Number, required: false }, // 1 - person, 2 - group, 3 - cloud
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,
