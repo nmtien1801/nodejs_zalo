@@ -4,6 +4,7 @@ const Message = require("../models/message");
 const Conversation = require("../models/conversation");
 const ReactionMessage = require("../models/reactionMessage");
 const RoomChat = require("../models/roomChat");
+const Permission = require("../models/permission");
 
 const getConversations = async (senderId) => {
   try {
@@ -41,9 +42,9 @@ const getConversationsByMember = async (userId) => {
     // Kiểm tra userId có hợp lệ không
     if (!mongoose.isValidObjectId(userId)) {
       return {
-        EM: 'ID thành viên không hợp lệ',
+        EM: "ID thành viên không hợp lệ",
         EC: 1,
-        DT: []
+        DT: [],
       };
     }
 
@@ -54,40 +55,40 @@ const getConversationsByMember = async (userId) => {
       {
         $match: {
           members: {
-            $in: [currentUserId]
-          }
-        }
+            $in: [currentUserId],
+          },
+        },
       },
       {
         $lookup: {
-          from: 'users',
-          localField: 'members',
-          foreignField: '_id',
-          as: 'memberDetails'
-        }
+          from: "users",
+          localField: "members",
+          foreignField: "_id",
+          as: "memberDetails",
+        },
       },
       {
         $addFields: {
           // Xác định người nhận (người không phải là current user)
           receiver: {
             $filter: {
-              input: '$memberDetails',
-              as: 'member',
-              cond: { $ne: ['$$member._id', currentUserId] }
-            }
+              input: "$memberDetails",
+              as: "member",
+              cond: { $ne: ["$$member._id", currentUserId] },
+            },
           },
           // Giữ thông tin current user
           sender: {
             $filter: {
-              input: '$memberDetails',
-              as: 'member',
-              cond: { $eq: ['$$member._id', currentUserId] }
-            }
+              input: "$memberDetails",
+              as: "member",
+              cond: { $eq: ["$$member._id", currentUserId] },
+            },
           },
           // Chuyển mảng receiver thành object (vì mỗi conversation chỉ có 2 người)
-          receiverInfo: { $arrayElemAt: ['$receiver', 0] },
-          senderInfo: { $arrayElemAt: ['$sender', 0] }
-        }
+          receiverInfo: { $arrayElemAt: ["$receiver", 0] },
+          senderInfo: { $arrayElemAt: ["$sender", 0] },
+        },
       },
       {
         $project: {
@@ -95,32 +96,32 @@ const getConversationsByMember = async (userId) => {
           createdAt: 1,
           updatedAt: 1,
           // Thông tin người nhận
-          receiverId: '$receiverInfo._id',
-          receiverName: '$receiverInfo.username',
-          receiverAvatar: '$receiverInfo.avatar',
-          receiverPhone: '$receiverInfo.phone',
+          receiverId: "$receiverInfo._id",
+          receiverName: "$receiverInfo.username",
+          receiverAvatar: "$receiverInfo.avatar",
+          receiverPhone: "$receiverInfo.phone",
           // Thông tin người gửi (current user)
-          senderId: '$senderInfo._id',
+          senderId: "$senderInfo._id",
           lastMessage: 1, // Giả sử có trường lastMessage
-          unreadCount: 1  // Giả sử có trường unreadCount
-        }
+          unreadCount: 1, // Giả sử có trường unreadCount
+        },
       },
       {
-        $sort: { updatedAt: -1 }
-      }
+        $sort: { updatedAt: -1 },
+      },
     ]);
 
     return {
-      EM: 'Lấy danh sách hội thoại thành công',
+      EM: "Lấy danh sách hội thoại thành công",
       EC: 0,
-      DT: conversations
+      DT: conversations,
     };
   } catch (error) {
-    console.error('Lỗi getConversationsByMember:', error);
+    console.error("Lỗi getConversationsByMember:", error);
     return {
-      EM: 'Lỗi server khi lấy danh sách hội thoại',
+      EM: "Lỗi server khi lấy danh sách hội thoại",
       EC: 2,
-      DT: []
+      DT: [],
     };
   }
 };
@@ -131,22 +132,22 @@ const createConversationGroup = async (nameGroup, avatarGroup, members) => {
       username: nameGroup,
       avatar: avatarGroup,
       members: members,
-      phone: '1',
+      phone: "1",
       permission: [1, 2, 3, 4, 5, 6, 7],
     });
 
     const conversations = [];
 
     for (let i = 0; i < members.length; i++) {
-      const role = i === 0 ? 'leader' : 'member';
-    
+      const role = i === 0 ? "leader" : "member";
+
       const conversation = await Conversation.create({
         sender: {
           _id: members[i],
         },
         receiver: {
           _id: roomChat._id,
-          username: roomChat.username
+          username: roomChat.username,
         },
         members: members,
         name: nameGroup,
@@ -156,7 +157,7 @@ const createConversationGroup = async (nameGroup, avatarGroup, members) => {
         type: "2",
         role: role,
       });
-    
+
       conversations.push(conversation);
     }
 
@@ -165,7 +166,6 @@ const createConversationGroup = async (nameGroup, avatarGroup, members) => {
       EC: 0,
       DT: conversations,
     };
-
   } catch (error) {
     console.log("check createConversationGroup service", error);
     return {
@@ -174,7 +174,7 @@ const createConversationGroup = async (nameGroup, avatarGroup, members) => {
       DT: "", // no data
     };
   }
-}
+};
 
 const getReactionsByMessageId = async (messageId) => {
   try {
@@ -234,7 +234,10 @@ const handleReaction = async (messageId, userId, emoji) => {
     }
 
     // Kiểm tra xem người dùng đã reaction cho tin nhắn này chưa
-    const existingReaction = await ReactionMessage.findOne({ messageId, userId });
+    const existingReaction = await ReactionMessage.findOne({
+      messageId,
+      userId,
+    });
 
     if (existingReaction) {
       if (existingReaction.emoji === emoji) {
@@ -266,7 +269,11 @@ const handleReaction = async (messageId, userId, emoji) => {
       }
     } else {
       // Nếu chưa có reaction, thêm mới
-      const newReaction = await ReactionMessage.create({ messageId, userId, emoji });
+      const newReaction = await ReactionMessage.create({
+        messageId,
+        userId,
+        emoji,
+      });
       return {
         EM: "Reaction added successfully", // success message
         EC: 0, // success code
@@ -283,10 +290,81 @@ const handleReaction = async (messageId, userId, emoji) => {
   }
 };
 
+const updatePermission = async (groupId, newPermission) => {
+  try {
+    // Kiểm tra groupId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return {
+        EM: "Invalid groupId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Tìm tất cả các conversation có receiver._id = groupId
+    const conversations = await Conversation.find({
+      "receiver._id": groupId,
+    });
+
+    if (!conversations || conversations.length === 0) {
+      return {
+        EM: "No conversations found for the given groupId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Cập nhật quyền cho tất cả các conversation
+    const updatedConversations = await Promise.all(
+      conversations.map(async (conversation) => {
+        conversation.receiver.permission = newPermission;
+        // Thêm trường avatar vào từng conversation
+        const user = await RoomChat.findById(conversation.receiver._id);
+        conversation.avatar = user?.avatar || null;
+        return await conversation.save();
+      })
+    );
+
+    return {
+      EM: "Permissions updated successfully", // success message
+      EC: 0, // success code
+      DT: updatedConversations, // Trả về danh sách conversation đã cập nhật
+    };
+  } catch (error) {
+    console.error("Error in updatePermission service: ", error);
+    return {
+      EM: "Error updating permissions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const getAllPermission = async () => {
+  try {
+    const permission = await Permission.find()
+
+    return {
+      EM: "Permissions fetched successfully", // success message
+      EC: 0, // success code
+      DT: permission, // Trả về danh sách quyền
+    };
+  } catch (error) {
+    console.error("Error in getAllPermissionByGroup service: ", error);
+    return {
+      EM: "Error fetching permissions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
 module.exports = {
   getConversations,
   createConversationGroup,
   handleReaction,
   getReactionsByMessageId,
-  getConversationsByMember
+  getConversationsByMember,
+  updatePermission,
+  getAllPermission,
 };

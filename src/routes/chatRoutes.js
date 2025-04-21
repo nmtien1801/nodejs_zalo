@@ -22,6 +22,8 @@ const ChatRoutes = (app) => {
   app.put("/api/messages/deleteForMe/:id", chatController.deleteMsgForMe); // Xóa chỉ ở phía tôi
   app.post("/api/messages/handleReaction", chatController.handleReaction); // Xử lý phản ứng
   app.get("/api/messages/:id/reactions", chatController.getReactionsByMessageId);
+  app.post("/api/updatePermission", chatController.updatePermission);
+  app.get("/api/getAllPermission", chatController.getAllPermission);
 
   return app.use("", router);
 };

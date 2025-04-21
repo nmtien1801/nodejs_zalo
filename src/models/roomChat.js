@@ -17,7 +17,6 @@ const roomChatSchema = new mongoose.Schema(
         ref: "RoomChat",
       },
     ],
-    permission: { type: [Number], default: [1, 2, 3, 4, 5, 6, 7] },
   },
   { timestamps: true }
 );

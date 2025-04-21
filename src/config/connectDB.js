@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 const Conversation = require("../models/conversation");
+const Permission = require("../models/permission");
 
 const connectDB = async () => {
   try {
@@ -15,46 +16,30 @@ const connectDB = async () => {
         receiver: {
           _id: new mongoose.Types.ObjectId(),
           username: "Alice",
-          phone: "0912345678",
+          phone: "0123456789",
+          permission: [1, 2, 3, 4, 5],
         },
         message: "Chào bạn!",
         time: "20/04/2025",
         startTime: new Date(),
         avatar: "/images/alice.jpg",
+        members: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
         type: 1, // person
         role: "leader",
       },
-      // {
-      //   sender: { _id: new mongoose.Types.ObjectId() },
-      //   receiver: {
-      //     _id: new mongoose.Types.ObjectId(),
-      //     username: "Group Support",
-      //     phone: "0000000000",
-      //   },
-      //   message: "Chào nhóm!",
-      //   time: "20/04/2025",
-      //   type: 2, // group
-      //   members: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
-      //   avatar: "/images/group.png",
-      //   role: "member",
-      // },
-      // {
-      //   sender: { _id: new mongoose.Types.ObjectId() },
-      //   receiver: {
-      //     _id: new mongoose.Types.ObjectId(),
-      //     username: "Cloud Bot",
-      //     phone: "0999999999",
-      //   },
-      //   message: "Lưu trữ xong",
-      //   time: "20/04/2025",
-      //   type: 3, // cloud
-      //   avatar: "/images/cloud.jpg",
-      //   role: "member",
-      // },
+    ];
+
+    // tạo permissions
+    const permissions = [
+      { code: 1, desc: "Thay đổi tên & ảnh đại diện của nhóm" },
+      { code: 2, desc: "Ghim tin nhắn, ghi chú, bình chọn lên đầu hội thoại" },
+      { code: 3, desc: "Tạo mới ghi chú, nhắc hẹn" },
+      { code: 4, desc: "Tạo mới bình chọn" },
+      { code: 5, desc: "Gửi tin nhắn" },
     ];
 
     // Conversation.insertMany(conversations);
-
+    // await Permission.insertMany(permissions);
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
     process.exit(1);

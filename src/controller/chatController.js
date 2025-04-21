@@ -404,6 +404,59 @@ const getReactionsByMessageId = async (req, res) => {
   }
 };
 
+const updatePermission = async (req, res) => {
+  try {
+    const { groupId, newPermission } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!groupId || !newPermission) {
+      return res.status(400).json({
+        EM: "Missing required fields (groupId, memberId, newPermission)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để cập nhật quyền
+    const result = await chatService.updatePermission(groupId, newPermission);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in updatePermission controller: ", error);
+    return res.status(500).json({
+      EM: "Error updating permission", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const getAllPermission = async (req, res) => {
+  try {
+    // Gọi service để lấy danh sách quyền
+    const result = await chatService.getAllPermission();
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in getAllPermission controller: ", error);
+    return res.status(500).json({
+      EM: "Error fetching permissions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -414,5 +467,7 @@ module.exports = {
   recallMsg,
   deleteMsgForMe,
   handleReaction,
-  getReactionsByMessageId
+  getReactionsByMessageId,
+  updatePermission,
+  getAllPermission
 };
