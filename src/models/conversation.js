@@ -19,7 +19,7 @@ const conversationSchema = new mongoose.Schema(
       },
       phone: {
         type: String,
-        required: true,
+        required: false,
       },
       permission: { type: [Number], required: false },
     },

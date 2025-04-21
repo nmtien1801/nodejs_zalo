@@ -39,7 +39,7 @@ const getConversationsByMember = async (req, res) => {
 
 const createConversationGroup = async (req, res) => {
   try {
-    const { nameGroup, avatarGroup, members } = req.body; // Lấy dữ liệu từ body request
+    const { avatarGroup, members, nameGroup } = req.body; // Lấy dữ liệu từ body request
 
     console.log("Tên nhóm:", nameGroup);
     console.log("Avatar nhóm:", avatarGroup);
@@ -81,12 +81,12 @@ const saveMsg = async (data) => {
       sender: {
         _id: data.sender._id,
         name: data.sender.username,
-        phone: data.sender.phone,
+        phone: data.sender?.phone || null,
       },
       receiver: {
         _id: data.receiver._id,
         name: data.receiver.username,
-        phone: data.receiver.phone,
+        phone: data.receiver?.phone || null,
         members: data.receiver.members,
       },
       isRead: false,

@@ -127,26 +127,45 @@ const getConversationsByMember = async (userId) => {
 
 const createConversationGroup = async (nameGroup, avatarGroup, members) => {
   try {
-    const conversation = await Conversation.create({
-      sender: {
-        _id: members[0]._id,
-      },
-      receiver: {
-        _id: members[1]._id,
-      },
-      members: members,
-      name: nameGroup,
+    const roomChat = await RoomChat.create({
+      username: nameGroup,
       avatar: avatarGroup,
-      message: "Bắt đầu cuộc trò chuyện mới",
-      time: Date.now(),
-      type: "2"
+      members: members,
+      phone: '1',
+      permission: [1, 2, 3, 4, 5, 6, 7],
     });
+
+    const conversations = [];
+
+    for (let i = 0; i < members.length; i++) {
+      const role = i === 0 ? 'leader' : 'member';
+    
+      const conversation = await Conversation.create({
+        sender: {
+          _id: members[i],
+        },
+        receiver: {
+          _id: roomChat._id,
+          username: roomChat.username
+        },
+        members: members,
+        name: nameGroup,
+        avatar: avatarGroup,
+        message: "Bắt đầu cuộc trò chuyện mới",
+        time: Date.now(),
+        type: "2",
+        role: role,
+      });
+    
+      conversations.push(conversation);
+    }
 
     return {
       EM: "ok! createConversationGroup",
       EC: 0,
-      DT: conversation,
+      DT: conversations,
     };
+
   } catch (error) {
     console.log("check createConversationGroup service", error);
     return {
@@ -269,6 +288,5 @@ module.exports = {
   createConversationGroup,
   handleReaction,
   getReactionsByMessageId,
-  getConversationsByMember,
-  createConversationGroup
+  getConversationsByMember
 };
