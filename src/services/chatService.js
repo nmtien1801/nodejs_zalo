@@ -283,10 +283,66 @@ const handleReaction = async (messageId, userId, emoji) => {
   }
 };
 
+const dissolveGroup = async (groupId, userId) => {
+  try {
+    // Kiểm tra xem group có tồn tại không
+    const roomChat = await RoomChat.findById(groupId);
+    if (!roomChat) {
+      return {
+        EM: "Nhóm không tồn tại",
+        EC: 1,
+        DT: "",
+      };
+    }
+
+    // Kiểm tra xem người dùng có phải là leader của nhóm không
+    const conversation = await Conversation.findOne({
+      "receiver._id": groupId,
+      "sender._id": userId,
+      role: "leader",
+    });
+
+    if (!conversation) {
+      return {
+        EM: "Bạn không có quyền giải tán nhóm này",
+        EC: 1,
+        DT: "",
+      };
+    }
+
+    // Xóa tất cả các conversation liên quan đến nhóm
+    await Conversation.deleteMany({
+      "receiver._id": groupId
+    });
+
+    // Xóa tất cả các tin nhắn trong nhóm
+    await Message.deleteMany({
+      conversationId: groupId
+    });
+
+    // Xóa nhóm
+    await RoomChat.findByIdAndDelete(groupId);
+
+    return {
+      EM: "Giải tán nhóm thành công",
+      EC: 0,
+      DT: "",
+    };
+  } catch (error) {
+    console.log("Check dissolveGroup service", error);
+    return {
+      EM: "Lỗi khi giải tán nhóm",
+      EC: 2,
+      DT: "",
+    };
+  }
+};
+
 module.exports = {
   getConversations,
   createConversationGroup,
   handleReaction,
   getReactionsByMessageId,
-  getConversationsByMember
+  getConversationsByMember,
+  dissolveGroup
 };

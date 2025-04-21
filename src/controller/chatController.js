@@ -404,6 +404,31 @@ const getReactionsByMessageId = async (req, res) => {
   }
 };
 
+const dissolveGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const userId = req.user._id;
+
+    if (!groupId) {
+      return res.status(400).json({
+        EM: "Thiếu thông tin nhóm",
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    const response = await chatService.dissolveGroup(groupId, userId);
+    return res.status(200).json(response);
+  } catch (error) {
+    console.log("check dissolveGroup controller", error);
+    return res.status(500).json({
+      EM: "Lỗi server khi giải tán nhóm",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -414,5 +439,6 @@ module.exports = {
   recallMsg,
   deleteMsgForMe,
   handleReaction,
-  getReactionsByMessageId
+  getReactionsByMessageId,
+  dissolveGroup,
 };
