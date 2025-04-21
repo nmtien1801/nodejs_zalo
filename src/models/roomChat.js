@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const roomChatSchema = new mongoose.Schema(
   {
     email: { type: String, required: false },
-    phone: { type: String, required: false, unique: true },
+    phone: { type: String, required: false },
     username: { type: String, required: true },
     gender: { type: String, required: false },
     dob: { type: String, required: false },

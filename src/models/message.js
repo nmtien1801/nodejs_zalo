@@ -17,7 +17,7 @@ const messageSchema = new mongoose.Schema(
       },
       phone: {
         type: String,
-        required: true,
+        required: false,
       },
     },
     receiver: {
@@ -31,7 +31,7 @@ const messageSchema = new mongoose.Schema(
       },
       phone: {
         type: String,
-        required: true,
+        required: false,
       },
       members: [
         {
