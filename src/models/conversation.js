@@ -21,7 +21,10 @@ const conversationSchema = new mongoose.Schema(
         type: String,
         required: false,
       },
-      permission: { type: [Number], required: false },
+      permission: {
+        type: [Number],
+        default: [1, 2, 3, 4, 5, 6, 7],
+      },
     },
     message: { type: String, required: false },
     time: { type: String, required: false },
