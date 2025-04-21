@@ -3,8 +3,10 @@ const Message = require("../models/message");
 
 const getConversations = async (req, res) => {
   try {
-    const { senderId } = req.params;
+    const senderId = req.user._id;
     let data = await chatService.getConversations(senderId);
+
+    // console.log("check getConversations", data);
 
     return res.status(200).json({
       EM: data.EM,
@@ -15,6 +17,20 @@ const getConversations = async (req, res) => {
     console.log("check getConversations server", err);
     return res.status(500).json({
       EM: "error getConversations", //error message
+      EC: 2, //error code
+      DT: "", // data
+    });
+  }
+};
+
+const getConversationsByMember = async (req, res) => {
+  try {
+    const { senderId } = req.params;
+    let data = await chatService.getConversationsByMember(senderId);
+  } catch (err) {
+    console.log("check getConversationsByMember server", err);
+    return res.status(500).json({
+      EM: "error getConversationsByMember", //error message
       EC: 2, //error code
       DT: "", // data
     });
@@ -37,12 +53,15 @@ const createConversationGroup = async (req, res) => {
       });
     }
 
-
-    let data = await chatService.createConversationGroup(nameGroup, avatarGroup, members);
+    let data = await chatService.createConversationGroup(
+      nameGroup,
+      avatarGroup,
+      members
+    );
 
     return res.status(200).json({
       EM: data.EM,
-      EC: data.EC, 
+      EC: data.EC,
       DT: data.DT,
     });
   } catch (err) {
@@ -68,12 +87,13 @@ const saveMsg = async (data) => {
         _id: data.receiver._id,
         name: data.receiver.username,
         phone: data.receiver.phone,
+        members: data.receiver.members,
       },
       isRead: false,
       isDeleted: false,
       isDeletedBySender: false,
       isDeletedByReceiver: false,
-      type: data.type || "text",    // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
+      type: data.type || "text", // 1 - text , 2 - image, 3 - video, 4 - file, 5 - icon
     };
 
     const saveMsg = new Message(_data);
@@ -109,41 +129,60 @@ const getMsg = async (req, res) => {
       // Tin nhắn nhóm
       allMsg = await Message.find({
         "receiver._id": receiver,
-        isDeleted: false,
-      });
-    } else {
-      // Tin nhắn giữa hai người
-      allMsg = await Message.find({
-        $or: [
-          { 
-            $and: [
-              { "sender._id": sender }, 
-              { "receiver._id": receiver },
-              { isDeletedBySender: false }
-            ] 
-          },
-          { 
-            $and: [
-              { "sender._id": receiver },
-              { "receiver._id": sender },
-              { isDeletedByReceiver: false }
-            ] 
-          },
-        ]
       });
 
       allMsg = allMsg.map((msg) => {
         if (msg.isDeleted) {
           return {
             _id: msg._id,
-            msg: "Tin nhắn đã được thu hồi", 
+            msg: "Tin nhắn đã được thu hồi",
             sender: msg.sender,
             receiver: msg.receiver,
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
             isDeletedByReceiver: msg.isDeletedByReceiver,
-            type: "system", 
+            type: "system",
+            createdAt: msg.createdAt,
+            updatedAt: msg.updatedAt,
+          };
+        }
+        return msg;
+      });
+    
+    } else {
+      // Tin nhắn giữa hai người
+      allMsg = await Message.find({
+        $or: [
+          {
+            $and: [
+              { "sender._id": sender },
+              { "receiver._id": receiver },
+              { isDeletedBySender: false },
+            ],
+          },
+          {
+            $and: [
+              { "sender._id": receiver },
+              { "receiver._id": sender },
+              { isDeletedByReceiver: false },
+            ],
+          },
+        ],
+      });
+
+      allMsg = allMsg.map((msg) => {
+        if (msg.isDeleted) {
+          return {
+            _id: msg._id,
+            msg: "Tin nhắn đã được thu hồi",
+            sender: msg.sender,
+            receiver: msg.receiver,
+            isRead: msg.isRead,
+            isDeleted: msg.isDeleted,
+            isDeletedBySender: msg.isDeletedBySender,
+            isDeletedByReceiver: msg.isDeletedByReceiver,
+            type: "system",
             createdAt: msg.createdAt,
             updatedAt: msg.updatedAt,
           };
@@ -210,9 +249,10 @@ const recallMsg = async (req, res) => {
 
 const deleteMsgForMe = async (req, res) => {
   const { id } = req.params; // Lấy ID tin nhắn từ params
-  const { userId } = req.body; // Lấy ID người dùng từ body request
+  const member = req.body; // Lấy ID người dùng từ body request
+
   try {
-    if (!id || !userId) {
+    if (!id || !member) {
       return res.status(400).json({
         EM: "Message ID and User ID are required", // error message
         EC: 1, // error code
@@ -232,12 +272,21 @@ const deleteMsgForMe = async (req, res) => {
     }
 
     // Kiểm tra người dùng là người gửi hay người nhận
-    if (message.sender._id.toString() === userId) {
+    if (message.sender._id.toString() === member._id) {
       // Người gửi xóa tin nhắn
       message.isDeletedBySender = true;
-    } else if (message.receiver._id.toString() === userId) {
+    } else if (message.receiver._id.toString() === member._id) {
       // Người nhận xóa tin nhắn
-      message.isDeletedByReceiver = true;
+      if (member.type && member.memberDel) {
+        // xóa nhóm
+        await Message.updateMany(
+          { "receiver._id": member._id }, // điều kiện tìm messages
+          { $addToSet: { memberDel: member.memberDel } } // cập nhật trường
+        );
+      } else {
+        // xóa 1 - 1
+        message.isDeletedByReceiver = true;
+      }
     } else {
       return res.status(403).json({
         EM: "You are not authorized to delete this message", // error message
@@ -357,6 +406,7 @@ const getReactionsByMessageId = async (req, res) => {
 
 module.exports = {
   getConversations,
+  getConversationsByMember,
   saveMsg,
   getMsg,
   delMsg,

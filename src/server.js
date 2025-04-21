@@ -1,13 +1,16 @@
 const express = require("express");
 const AuthRoutes = require("./routes/authRoute");
-const UploadRoutes = require("./routes/uploadRoutes"); 
+const UploadRoutes = require("./routes/uploadRoutes");
 const configCORS = require("./config/cors");
 const connectDB = require("./config/connectDB");
 const http = require("http");
 const socketInit = require("./socket/index");
 const path = require("path");
 const ChatRoute = require("./routes/chatRoutes");
+const RoomChatRoutes = require("./routes/roomChatRoutes");
+const FriendRequestRoutes = require("./routes/friendRequestRoutes");
 const ProfileRoutes = require("./routes/profileRoutes");
+const FriendShipRoutes = require("./routes/friendShipRoute");
 
 const app = express();
 const server = http.createServer(app);
@@ -27,8 +30,11 @@ connectDB();
 
 AuthRoutes(app);
 ChatRoute(app);
+RoomChatRoutes(app);
+FriendRequestRoutes(app);
 UploadRoutes(app)
 ProfileRoutes(app)
+FriendShipRoutes(app);
 
 // =========================== Socket
 

@@ -21,6 +21,8 @@ const fileFilter = (req, file, cb) => {
     "application/msword", // Word .doc
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word .docx
     "text/plain", // Text file .txt
+    "application/vnd.ms-excel", // cho định dạng .xls (Excel cũ)
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // cho định dạng .xlsx (Excel mới)
   ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);

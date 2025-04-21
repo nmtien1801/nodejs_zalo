@@ -9,46 +9,51 @@ const connectDB = async () => {
     console.log(`MongoDB connected to database: ${process.env.DATABASE_NAME}`);
 
     // tạo newConversation
-    // const newConversation = new Conversation({
-    //   sender: { _id: new mongoose.Types.ObjectId() },
-    //   receiver: {
-    //     _id: new mongoose.Types.ObjectId(),
-    //     username: "Cloud",
-    //     phone: "0987654321",
-    //   },
-    //   message: "Xin chào!",
-    //   time: "26/07/24",
-    //   avatar: "/avatar.jpg",
-    //   type: "1",
-    // });
-
-    // const newConversation2 = new Conversation({
-    //   sender: { _id: new mongoose.Types.ObjectId() },
-    //   receiver: {
-    //     _id: new mongoose.Types.ObjectId(),
-    //     username: "user",
-    //     phone: "0987654322",
-    //   },
-    //   message: "Xin chào!",
-    //   time: "26/07/24",
-    //   avatar: "/avatar.jpg",
-    //   type: "1",
-    // });
-
-    // const newConversation3 = new Conversation({
+    const conversations = [
+      {
+        sender: { _id: new mongoose.Types.ObjectId() },
+        receiver: {
+          _id: new mongoose.Types.ObjectId(),
+          username: "Alice",
+          phone: "0912345678",
+        },
+        message: "Chào bạn!",
+        time: "20/04/2025",
+        startTime: new Date(),
+        avatar: "/images/alice.jpg",
+        type: 1, // person
+        role: "leader",
+      },
+      // {
       //   sender: { _id: new mongoose.Types.ObjectId() },
       //   receiver: {
       //     _id: new mongoose.Types.ObjectId(),
-      //     username: "Thư",
-      //     phone: "0987654321",
+      //     username: "Group Support",
+      //     phone: "0000000000",
       //   },
-      //   message: "Xin chào!",
-      //   time: "26/07/24",
-      //   avatar: "/avatar.jpg",
-      //   type: "1",
-      // });
-    // newConversation.save();
-    // newConversation2.save();
+      //   message: "Chào nhóm!",
+      //   time: "20/04/2025",
+      //   type: 2, // group
+      //   members: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
+      //   avatar: "/images/group.png",
+      //   role: "member",
+      // },
+      // {
+      //   sender: { _id: new mongoose.Types.ObjectId() },
+      //   receiver: {
+      //     _id: new mongoose.Types.ObjectId(),
+      //     username: "Cloud Bot",
+      //     phone: "0999999999",
+      //   },
+      //   message: "Lưu trữ xong",
+      //   time: "20/04/2025",
+      //   type: 3, // cloud
+      //   avatar: "/images/cloud.jpg",
+      //   role: "member",
+      // },
+    ];
+
+    // Conversation.insertMany(conversations);
 
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);

@@ -21,19 +21,22 @@ const conversationSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
-      members: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-        },
-      ],
+      permission: { type: [Number], required: false },
     },
-    message: { type: String, required: true },
-    time: { type: String, required: true },
-    startTime: { type: Date, required: true },
+    message: { type: String, required: false },
+    time: { type: String, required: false },
+    startTime: { type: Date, required: false },
     endTime: { type: Date },
     avatar: { type: String, required: false },
-    type: { type: Number, required: true },
+    type: { type: Number, required: false }, // 1 - person, 2 - group, 3 - cloud
+    members: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false,
+        ref: "RoomChat",
+      },
+    ],
+    role: { type: String, default: "member" }, // leader - deputy - member
   },
   { timestamps: true }
 );
