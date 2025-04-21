@@ -88,10 +88,6 @@ const socketInit = (server) => {
       }
     });
 
-    socket.on("DELETE_MSG", (msg) => {
-      socket.to(msg.receiver.socketId).emit("DELETED_MSG", msg);
-    });
-
     // CALL
     // Bước 1: Đăng ký user với heartbeat
     const signalQueue = {};
