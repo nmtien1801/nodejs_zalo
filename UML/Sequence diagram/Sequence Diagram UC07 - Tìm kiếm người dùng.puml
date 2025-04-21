@@ -1,0 +1,26 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập chức năng tìm kiếm
+System -> User: Hiển thị ô nhập từ khóa
+User -> System: Nhập từ khóa (tên hoặc email)
+System -> System: Kiểm tra từ khóa
+
+alt Từ khóa hợp lệ
+    System -> DB: Truy vấn người dùng
+    alt Tìm thấy người dùng
+        DB --> System: Danh sách kết quả
+        System -> User: Hiển thị danh sách kết quả
+    else Không tìm thấy
+        DB --> System: Không có kết quả
+        System -> User: Hiển thị thông báo "Không tìm thấy"
+        User -> System: Nhập lại từ khóa
+    end alt
+else Từ khóa không hợp lệ
+    System -> User: Hiển thị lỗi "Nhập từ khóa hợp lệ"
+    User -> System: Nhập lại từ khóa
+end alt
+
+@enduml

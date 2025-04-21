@@ -1,0 +1,16 @@
+@startuml
+start
+:Người dùng truy cập chức năng\nquản lý nhóm;
+:Hệ thống hiển thị tùy chọn\nmời thành viên;
+:Người dùng chọn người để mời\nvà gửi lời mời;
+:Hệ thống gửi thông báo mời;
+
+if (Người được mời chấp nhận?) then (yes)
+    :Hệ thống thêm người được mời\nvào nhóm trong MongoDB;
+    stop
+else (no)
+    :Hệ thống thông báo\n"Lời mời bị từ chối";
+    stop
+endif
+
+@enduml

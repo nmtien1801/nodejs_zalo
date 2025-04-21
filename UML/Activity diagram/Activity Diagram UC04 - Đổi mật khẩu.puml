@@ -1,0 +1,22 @@
+@startuml
+start
+:Người dùng truy cập trang\ncài đặt tài khoản;
+:Hệ thống hiển thị biểu mẫu\nđổi mật khẩu;
+:Người dùng nhập thông tin\n(mật khẩu hiện tại, mới);
+:Hệ thống kiểm tra mật khẩu\nhiện tại và mật khẩu mới;
+
+if (Thông tin hợp lệ?) then (yes)
+    :Hệ thống cập nhật mật khẩu\ntrong MongoDB;
+    :Hệ thống hiển thị thông báo\n"Đổi mật khẩu thành công";
+    stop
+else (no)
+    if (Mật khẩu hiện tại sai?) then (yes)
+        :Hệ thống hiển thị lỗi\n"Mật khẩu hiện tại không đúng";
+    else (no)
+        :Hệ thống hiển thị lỗi\nđịnh dạng mật khẩu mới;
+    endif
+    :Người dùng nhập lại thông tin;
+    ->Người dùng nhập thông tin
+endif
+
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+start
+:Người dùng truy cập danh sách\nliên hệ;
+:Người dùng chọn người và nhấn\n"Xóa bạn";
+:Hệ thống yêu cầu xác nhận;
+
+if (Xác nhận xóa?) then (yes)
+    :Hệ thống xóa người khỏi danh sách\nliên hệ trong MongoDB;
+    :Hệ thống thông báo\n"Xóa bạn thành công";
+    stop
+else (no)
+    :Hệ thống hủy hành động;
+    stop
+endif
+
+@enduml

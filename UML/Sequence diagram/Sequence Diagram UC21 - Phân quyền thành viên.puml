@@ -1,0 +1,20 @@
+@startuml
+actor "Admin" as Admin
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+Admin -> System: Truy cập chức năng quản lý nhóm
+System -> Admin: Hiển thị danh sách thành viên và vai trò
+Admin -> System: Chọn thành viên và gán vai trò mới
+System -> System: Kiểm tra thành viên
+
+alt Thành viên hợp lệ
+    System -> DB: Cập nhật vai trò
+    DB --> System: Xác nhận cập nhật
+    System -> Admin: Thông báo "Phân quyền thành công"
+else Thành viên không hợp lệ
+    System -> Admin: Hiển thị lỗi "Chọn thành viên hợp lệ"
+    Admin -> System: Chọn lại thành viên
+end alt
+
+@enduml

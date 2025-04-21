@@ -1,0 +1,26 @@
+@startuml
+actor "Người dùng" as User
+actor "Người được mời" as Friend
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Chọn người dùng và nhấn "Thêm bạn"
+System -> DB: Kiểm tra người dùng đã trong danh sách liên hệ
+
+alt Không phải bạn
+    DB --> System: Không tồn tại
+    System -> Friend: Gửi yêu cầu kết bạn
+    Friend -> System: Chấp nhận hoặc từ chối
+    alt Chấp nhận
+        System -> DB: Cập nhật danh sách liên hệ
+        DB --> System: Xác nhận cập nhật
+        System -> User: Thông báo "Thêm bạn thành công"
+    else Từ chối
+        System -> User: Thông báo "Yêu cầu bị từ chối"
+    end alt
+else Đã là bạn
+    DB --> System: Đã tồn tại
+    System -> User: Hiển thị thông báo "Người dùng đã là bạn"
+end alt
+
+@enduml

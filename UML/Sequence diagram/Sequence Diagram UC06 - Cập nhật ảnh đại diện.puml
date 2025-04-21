@@ -1,0 +1,29 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "AWS S3" as S3
+participant "MongoDB" as DB
+
+User -> System: Truy cập trang chỉnh sửa hồ sơ
+System -> User: Hiển thị tùy chọn tải lên ảnh đại diện
+User -> System: Chọn và tải lên ảnh
+System -> System: Kiểm tra định dạng và kích thước ảnh
+
+alt Ảnh hợp lệ
+    System -> S3: Tải ảnh lên
+    alt Tải lên thành công
+        S3 --> System: Đường dẫn ảnh
+        System -> DB: Cập nhật đường dẫn ảnh
+        DB --> System: Xác nhận cập nhật
+        System -> User: Hiển thị thông báo "Cập nhật ảnh thành công"
+    else Tải lên thất bại
+        S3 --> System: Lỗi
+        System -> User: Hiển thị lỗi "Lỗi tải lên"
+        User -> System: Chọn lại ảnh
+    end alt
+else Ảnh không hợp lệ
+    System -> User: Hiển thị lỗi "File không hợp lệ"
+    User -> System: Chọn lại ảnh
+end alt
+
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+start
+:Người dùng truy cập trang đăng ký;
+:Hệ thống hiển thị biểu mẫu đăng ký;
+:Người dùng nhập thông tin\n(tên, email, mật khẩu);
+:Hệ thống kiểm tra tính hợp lệ thông tin;
+
+if (Thông tin hợp lệ?) then (yes)
+    :Hệ thống kiểm tra email/tên\nngười dùng tồn tại;
+    if (Email/tên đã tồn tại?) then (no)
+        :Hệ thống tạo bản ghi người dùng\ntrong MongoDB;
+        :Hệ thống gửi thông báo xác nhận;
+        :Người dùng được chuyển hướng\nđến trang đăng nhập;
+        stop
+    else (yes)
+        :Hệ thống hiển thị lỗi\n"Email/tên đã được sử dụng";
+        :Người dùng nhập lại thông tin;
+        ->Người dùng nhập thông tin
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi định dạng;
+    :Người dùng sửa thông tin;
+    ->Người dùng nhập thông tin
+endif
+
+@enduml

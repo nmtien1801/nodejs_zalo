@@ -1,0 +1,24 @@
+@startuml
+start
+
+:Người dùng truy cập trang đăng nhập;
+:Hệ thống hiển thị biểu mẫu đăng nhập;
+:Người dùng nhập thông tin\n(email/tên, mật khẩu);
+:Hệ thống kiểm tra thông tin\nvới MongoDB;
+
+if (Thông tin đúng?) then (yes)
+    :Hệ thống tạo mã JWT;
+    :Hệ thống chuyển hướng đến\ngiao diện chính;
+    stop
+else (no)
+    if (Lỗi kết nối hệ thống?) then (yes)
+        :Hệ thống hiển thị lỗi\n"Vui lòng thử lại sau";
+        stop
+    else (no)
+        :Hệ thống hiển thị lỗi\n"Email/tên hoặc mật khẩu sai";
+        :Người dùng nhập lại thông tin;
+        -> Người dùng nhập thông tin
+    endif
+endif
+
+@enduml

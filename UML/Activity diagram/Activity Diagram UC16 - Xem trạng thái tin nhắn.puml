@@ -1,0 +1,17 @@
+@startuml
+start
+:Người dùng mở cuộc trò chuyện;
+:Hệ thống hiển thị tin nhắn\nvới trạng thái hiện tại;
+:Người nhận xem tin nhắn;
+
+if (Người nhận trực tuyến?) then (yes)
+    :Hệ thống gửi cập nhật trạng thái\nqua WebSocket;
+    :Hệ thống cập nhật trạng thái\ntrong MongoDB;
+    :Người dùng thấy trạng thái "đã xem";
+    stop
+else (no)
+    :Hệ thống hiển thị trạng thái\n"đã gửi" hoặc "đã nhận";
+    stop
+endif
+
+@enduml

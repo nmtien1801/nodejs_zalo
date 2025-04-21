@@ -1,0 +1,28 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập trang chỉnh sửa hồ sơ
+System -> User: Hiển thị biểu mẫu thông tin hiện tại
+User -> System: Chỉnh sửa thông tin (tên, email, địa chỉ)
+System -> System: Kiểm tra tính hợp lệ thông tin
+
+alt Thông tin hợp lệ
+    System -> DB: Kiểm tra email tồn tại
+    alt Email không tồn tại
+        DB --> System: Không tồn tại
+        System -> DB: Cập nhật hồ sơ
+        DB --> System: Xác nhận cập nhật
+        System -> User: Hiển thị thông báo "Cập nhật hồ sơ thành công"
+    else Email đã tồn tại
+        DB --> System: Đã tồn tại
+        System -> User: Hiển thị lỗi "Email đã được sử dụng"
+        User -> System: Nhập lại thông tin
+    end alt
+else Thông tin không hợp lệ
+    System -> User: Hiển thị lỗi định dạng
+    User -> System: Nhập lại thông tin
+end alt
+
+@enduml

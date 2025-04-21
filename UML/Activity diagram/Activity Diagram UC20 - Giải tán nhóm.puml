@@ -1,0 +1,17 @@
+@startuml
+start
+:Admin truy cập chức năng\nquản lý nhóm;
+:Hệ thống hiển thị tùy chọn\ngiải tán nhóm;
+:Admin chọn giải tán nhóm;
+:Hệ thống yêu cầu xác nhận;
+
+if (Xác nhận?) then (yes)
+    :Hệ thống xóa nhóm\nkhỏi MongoDB;
+    :Hệ thống thông báo đến\nthành viên;
+    stop
+else (no)
+    :Hệ thống hủy hành động;
+    stop
+endif
+
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+start
+:Người dùng truy cập trang\nchỉnh sửa hồ sơ;
+:Hệ thống hiển thị biểu mẫu\nthông tin hiện tại;
+:Người dùng chỉnh sửa thông tin\n(tên, email, địa chỉ);
+:Hệ thống kiểm tra tính hợp lệ\nthông tin;
+
+if (Thông tin hợp lệ?) then (yes)
+    if (Email đã tồn tại?) then (no)
+        :Hệ thống cập nhật hồ sơ\ntrong MongoDB;
+        :Hệ thống hiển thị thông báo\n"Cập nhật hồ sơ thành công";
+        stop
+    else (yes)
+        :Hệ thống hiển thị lỗi\n"Email đã được sử dụng";
+        :Người dùng nhập lại thông tin;
+        ->Người dùng chỉnh sửa thông tin
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi định dạng;
+    :Người dùng chỉnh sửa thông tin;
+    ->Người dùng chỉnh sửa thông tin
+endif
+
+@enduml

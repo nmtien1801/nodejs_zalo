@@ -1,0 +1,17 @@
+@startuml
+start
+:Người dùng mở cuộc trò chuyện;
+:Hệ thống hiển thị bảng\nchọn emoji;
+:Người dùng chọn emoji và gửi;
+:Hệ thống gửi emoji qua WebSocket;
+:Hệ thống lưu emoji vào MongoDB;
+
+if (Người nhận trực tuyến?) then (yes)
+    :Người nhận nhận emoji\ntrong thời gian thực;
+    stop
+else (no)
+    :Hệ thống lưu emoji\nvà gửi khi trực tuyến;
+    stop
+endif
+
+@enduml

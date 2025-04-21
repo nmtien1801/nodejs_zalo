@@ -1,0 +1,41 @@
+@startuml
+actor "Người dùng" as User
+actor "Thành viên" as Member
+participant "Hệ thống" as System
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở nhóm trò chuyện
+User -> System: Chọn tin nhắn và hành động (thu hồi/xóa/chuyển tiếp)
+System -> System: Kiểm tra quyền và thời gian
+
+alt Hành động được phép
+    alt Thu hồi
+        System -> WS: Gửi thông báo thu hồi
+        WS -> Member: Gỡ tin nhắn
+        System -> DB: Cập nhật trạng thái
+        DB --> System: Xác nhận cập nhật
+        System -> User: Gỡ tin nhắn khỏi giao diện
+    else Xóa
+        System -> User: Yêu cầu xác nhận
+        User -> System: Xác nhận
+        System -> DB: Cập nhật trạng thái
+        DB --> System: Xác nhận cập nhật
+        System -> User: Gỡ tin nhắn khỏi giao diện
+    else Chuyển tiếp
+        System -> User: Hiển thị danh sách đích
+        User -> System: Chọn đích và xác nhận
+        alt Đích hợp lệ
+            System -> WS: Gửi tin nhắn đến đích
+            System -> DB: Lưu tin nhắn
+            DB --> System: Xác nhận lưu
+        else Đích không hợp lệ
+            System -> User: Hiển thị lỗi "Chọn đích hợp lệ"
+            User -> System: Chọn lại đích
+        end alt
+    end alt
+else Hành động không được phép
+    System -> User: Hiển thị lỗi "Hành động không được phép"
+end alt
+
+@enduml

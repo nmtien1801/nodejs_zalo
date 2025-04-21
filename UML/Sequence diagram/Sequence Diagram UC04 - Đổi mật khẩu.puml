@@ -1,0 +1,23 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập trang cài đặt tài khoản
+System -> User: Hiển thị biểu mẫu đổi mật khẩu
+User -> System: Nhập thông tin (mật khẩu hiện tại, mới)
+System -> System: Kiểm tra mật khẩu hiện tại và mật khẩu mới
+
+alt Thông tin hợp lệ
+    System -> DB: Cập nhật mật khẩu mới
+    DB --> System: Xác nhận cập nhật
+    System -> User: Hiển thị thông báo "Đổi mật khẩu thành công"
+else Mật khẩu hiện tại sai
+    System -> User: Hiển thị lỗi "Mật khẩu hiện tại không đúng"
+    User -> System: Nhập lại thông tin
+else Mật khẩu mới không hợp lệ
+    System -> User: Hiển thị lỗi định dạng
+    User -> System: Nhập lại thông tin
+end alt
+
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+start
+:Người dùng truy cập chức năng\ntạo nhóm;
+:Hệ thống hiển thị biểu mẫu\ntạo nhóm;
+:Người dùng nhập tên nhóm\nvà chọn thành viên;
+:Hệ thống kiểm tra thông tin;
+
+if (Thông tin hợp lệ?) then (yes)
+    :Hệ thống tạo nhóm trong MongoDB;
+    :Hệ thống gán người dùng làm admin;
+    :Hệ thống thông báo\n"Tạo nhóm thành công";
+    stop
+else (no)
+    :Hệ thống hiển thị lỗi\n"Nhập tên hoặc chọn thành viên";
+    :Người dùng chỉnh sửa thông tin;
+    ->Người dùng nhập tên nhóm\nvà chọn thành viên
+endif
+
+@enduml

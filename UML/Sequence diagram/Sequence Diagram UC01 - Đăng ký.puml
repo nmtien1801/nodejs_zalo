@@ -1,0 +1,29 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập trang đăng ký
+System -> User: Hiển thị biểu mẫu đăng ký
+User -> System: Nhập thông tin (tên, email, mật khẩu)
+System -> System: Kiểm tra tính hợp lệ thông tin
+
+alt Thông tin hợp lệ
+    System -> DB: Kiểm tra email/tên tồn tại
+    alt Email/tên không tồn tại
+        DB --> System: Không tồn tại
+        System -> DB: Tạo bản ghi người dùng
+        DB --> System: Xác nhận tạo thành công
+        System -> User: Gửi thông báo xác nhận
+        System -> User: Chuyển hướng đến trang đăng nhập
+    else Email/tên đã tồn tại
+        DB --> System: Đã tồn tại
+        System -> User: Hiển thị lỗi "Email/tên đã được sử dụng"
+        User -> System: Nhập lại thông tin
+    end alt
+else Thông tin không hợp lệ
+    System -> User: Hiển thị lỗi định dạng
+    User -> System: Nhập lại thông tin
+end alt
+
+@enduml

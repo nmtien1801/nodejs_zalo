@@ -1,0 +1,17 @@
+@startuml
+start
+:Người dùng mở cuộc trò chuyện;
+:Người dùng chọn tin nhắn\nvà nhấn "Thu hồi";
+:Hệ thống kiểm tra thời gian\ncho phép thu hồi;
+
+if (Có thể thu hồi?) then (yes)
+    :Hệ thống gửi thông báo thu hồi\nqua WebSocket;
+    :Hệ thống cập nhật trạng thái\ntrong MongoDB;
+    :Tin nhắn được gỡ khỏi giao diện;
+    stop
+else (no)
+    :Hệ thống hiển thị lỗi\n"Không thể thu hồi";
+    stop
+endif
+
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập chức năng tạo nhóm
+System -> User: Hiển thị biểu mẫu tạo nhóm
+User -> System: Nhập tên nhóm và chọn thành viên
+System -> System: Kiểm tra thông tin
+
+alt Thông tin hợp lệ
+    System -> DB: Tạo nhóm mới
+    DB --> System: Xác nhận tạo
+    System -> DB: Gán người dùng làm admin
+    DB --> System: Xác nhận gán
+    System -> User: Thông báo "Tạo nhóm thành công"
+else Thông tin không hợp lệ
+    System -> User: Hiển thị lỗi "Nhập tên hoặc chọn thành viên"
+    User -> System: Chỉnh sửa thông tin
+end alt
+
+@enduml

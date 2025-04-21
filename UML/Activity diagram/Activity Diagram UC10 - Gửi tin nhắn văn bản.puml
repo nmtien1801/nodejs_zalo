@@ -1,0 +1,24 @@
+@startuml
+start
+:Người dùng mở cuộc trò chuyện;
+:Hệ thống hiển thị khung\nnhập tin nhắn;
+:Người dùng nhập tin nhắn văn bản;
+:Hệ thống kiểm tra độ dài\ntin nhắn;
+
+if (Tin nhắn hợp lệ?) then (yes)
+    :Hệ thống gửi tin nhắn qua WebSocket;
+    :Hệ thống lưu tin nhắn\nvào MongoDB;
+    if (Người nhận trực tuyến?) then (yes)
+        :Người nhận nhận tin nhắn\ntrong thời gian thực;
+        stop
+    else (no)
+        :Hệ thống lưu tin nhắn\nvà gửi khi trực tuyến;
+        stop
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi\n"Tin nhắn quá dài";
+    :Người dùng chỉnh sửa tin nhắn;
+    ->Người dùng nhập tin nhắn văn bản
+endif
+
+@enduml

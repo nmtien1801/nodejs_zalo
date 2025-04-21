@@ -1,0 +1,27 @@
+@startuml
+actor "Người dùng" as User
+actor "Thành viên" as Member
+participant "Hệ thống" as System
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở nhóm trò chuyện
+System -> User: Hiển thị khung nhập tin nhắn
+User -> System: Nhập và gửi tin nhắn
+System -> System: Kiểm tra tin nhắn
+
+alt Tin nhắn hợp lệ
+    System -> WS: Gửi tin nhắn đến thành viên
+    System -> DB: Lưu tin nhắn
+    DB --> System: Xác nhận lưu
+    alt Thành viên trực tuyến
+        WS -> Member: Gửi tin nhắn
+    else Thành viên không trực tuyến
+        System -> DB: Lưu tin nhắn để gửi sau
+    end alt
+else Tin nhắn không hợp lệ
+    System -> User: Hiển thị lỗi "Tin nhắn không hợp lệ"
+    User -> System: Chỉnh sửa và gửi lại
+end alt
+
+@enduml

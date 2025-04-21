@@ -1,0 +1,26 @@
+@startuml
+actor "Người dùng" as User
+actor "Thành viên" as Member
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập chức năng quản lý nhóm
+System -> User: Hiển thị tùy chọn rời nhóm/xóa thành viên
+User -> System: Chọn hành động (rời hoặc xóa)
+
+alt Không phải admin duy nhất
+    System -> User: Yêu cầu xác nhận
+    alt Xác nhận
+        User -> System: Xác nhận
+        System -> DB: Xóa người dùng/thành viên khỏi nhóm
+        DB --> System: Xác nhận xóa
+    else Hủy
+        User -> System: Hủy
+        System -> User: Hủy hành động
+    end alt
+else Là admin duy nhất
+    System -> User: Hiển thị lỗi "Chỉ định admin mới"
+    User -> System: Chọn lại hành động
+end alt
+
+@enduml

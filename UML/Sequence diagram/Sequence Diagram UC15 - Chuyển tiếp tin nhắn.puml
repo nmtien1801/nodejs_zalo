@@ -1,0 +1,23 @@
+@startuml
+actor "Người dùng" as User
+actor "Người nhận" as Receiver
+participant "Hệ thống" as System
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở cuộc trò chuyện
+User -> System: Chọn tin nhắn và nhấn "Chuyển tiếp"
+System -> User: Hiển thị danh sách liên hệ/nhóm
+User -> System: Chọn đích và xác nhận
+
+alt Đích hợp lệ
+    System -> WS: Gửi tin nhắn đến đích
+    WS -> Receiver: Gửi tin nhắn
+    System -> DB: Lưu tin nhắn vào cuộc trò chuyện mới
+    DB --> System: Xác nhận lưu
+else Đích không hợp lệ
+    System -> User: Hiển thị lỗi "Chọn đích hợp lệ"
+    User -> System: Chọn lại đích
+end alt
+
+@enduml

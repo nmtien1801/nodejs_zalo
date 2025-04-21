@@ -1,0 +1,22 @@
+@startuml
+actor "Admin" as Admin
+actor "Thành viên" as Member
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+Admin -> System: Truy cập chức năng quản lý nhóm
+System -> Admin: Hiển thị tùy chọn giải tán nhóm
+Admin -> System: Chọn giải tán nhóm
+System -> Admin: Yêu cầu xác nhận
+
+alt Xác nhận
+    Admin -> System: Xác nhận
+    System -> DB: Xóa nhóm
+    DB --> System: Xác nhận xóa
+    System -> Member: Thông báo nhóm đã giải tán
+else Hủy
+    Admin -> System: Hủy
+    System -> Admin: Hủy hành động
+end alt
+
+@enduml

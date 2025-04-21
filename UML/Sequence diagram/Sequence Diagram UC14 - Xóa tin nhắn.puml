@@ -1,0 +1,20 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Mở cuộc trò chuyện
+User -> System: Chọn tin nhắn và nhấn "Xóa"
+System -> User: Yêu cầu xác nhận
+
+alt Xác nhận xóa
+    User -> System: Xác nhận
+    System -> DB: Cập nhật trạng thái tin nhắn
+    DB --> System: Xác nhận cập nhật
+    System -> User: Gỡ tin nhắn khỏi giao diện
+else Hủy
+    User -> System: Hủy
+    System -> User: Hủy hành động
+end alt
+
+@enduml

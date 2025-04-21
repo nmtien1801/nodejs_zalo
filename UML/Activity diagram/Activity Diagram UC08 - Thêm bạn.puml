@@ -1,0 +1,23 @@
+@startuml
+start
+:Người dùng chọn người dùng\ntừ kết quả tìm kiếm;
+:Người dùng nhấn "Thêm bạn";
+:Hệ thống kiểm tra người dùng\nđã trong danh sách liên hệ;
+
+if (Đã là bạn?) then (yes)
+    :Hệ thống hiển thị thông báo\n"Người dùng đã là bạn";
+    stop
+else (no)
+    :Hệ thống gửi yêu cầu kết bạn;
+    :Người được mời nhận thông báo;
+    if (Chấp nhận yêu cầu?) then (yes)
+        :Hệ thống cập nhật danh sách\nliên hệ trong MongoDB;
+        :Hệ thống thông báo\n"Thêm bạn thành công";
+        stop
+    else (no)
+        :Hệ thống thông báo\n"Yêu cầu bị từ chối";
+        stop
+    endif
+endif
+
+@enduml

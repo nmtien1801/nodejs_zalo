@@ -1,0 +1,25 @@
+@startuml
+start
+:Người dùng truy cập trang\nchỉnh sửa hồ sơ;
+:Hệ thống hiển thị tùy chọn\ntải lên ảnh đại diện;
+:Người dùng chọn và tải lên ảnh;
+:Hệ thống kiểm tra định dạng\nvà kích thước ảnh;
+
+if (Ảnh hợp lệ?) then (yes)
+    :Hệ thống tải ảnh lên AWS S3;
+    if (Tải lên thành công?) then (yes)
+        :Hệ thống cập nhật đường dẫn\ntrong MongoDB;
+        :Hệ thống hiển thị thông báo\n"Cập nhật ảnh thành công";
+        stop
+    else (no)
+        :Hệ thống hiển thị lỗi\n"Lỗi tải lên";
+        :Người dùng chọn lại ảnh;
+        ->Người dùng chọn và tải lên ảnh
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi\n"File không hợp lệ";
+    :Người dùng chọn lại ảnh;
+    ->Người dùng chọn và tải lên ảnh
+endif
+
+@enduml

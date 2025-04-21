@@ -1,0 +1,32 @@
+@startuml
+actor "Người dùng" as User
+actor "Người nhận" as Receiver
+participant "Hệ thống" as System
+participant "AWS S3" as S3
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở cuộc trò chuyện
+System -> User: Hiển thị tùy chọn tải lên file
+User -> System: Chọn và gửi file
+System -> System: Kiểm tra định dạng và kích thước file
+
+alt File hợp lệ
+    System -> S3: Tải file lên
+    alt Tải lên thành công
+        S3 --> System: Đường dẫn file
+        System -> DB: Lưu đường dẫn
+        DB --> System: Xác nhận lưu
+        System -> WS: Gửi thông báo file
+        WS -> Receiver: Gửi file
+    else Tải lên thất bại
+        S3 --> System: Lỗi
+        System -> User: Hiển thị lỗi "Lỗi tải lên"
+        User -> System: Chọn lại file
+    end alt
+else File không hợp lệ
+    System -> User: Hiển thị lỗi "File không hợp lệ"
+    User -> System: Chọn lại file
+end alt
+
+@enduml

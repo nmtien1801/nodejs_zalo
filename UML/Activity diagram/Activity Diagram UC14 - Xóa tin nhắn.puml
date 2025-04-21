@@ -1,0 +1,16 @@
+@startuml
+start
+:Người dùng mở cuộc trò chuyện;
+:Người dùng chọn tin nhắn\nvà nhấn "Xóa";
+:Hệ thống yêu cầu xác nhận;
+
+if (Xác nhận xóa?) then (yes)
+    :Hệ thống cập nhật trạng thái\ntrong MongoDB;
+    :Tin nhắn được gỡ khỏi giao diện\nngười dùng;
+    stop
+else (no)
+    :Hệ thống hủy hành động;
+    stop
+endif
+
+@enduml
