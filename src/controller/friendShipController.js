@@ -66,8 +66,38 @@ const checkFriendShipExists = async (req, res) => {
     }
 }
 
+const getAllFriends = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        if (!userId) {
+            return res.status(400).json({
+                EM: 'User ID is required',
+                EC: 1,
+                DT: '',
+            });
+        }
+
+        const data = await friendShipService.getAllFriends(userId);
+
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check getAllFriends server', err);
+        return res.status(500).json({
+            EM: 'error getAllFriends', // error message
+            EC: 2, // error code
+            DT: '', // data
+        });
+    }
+};
+
 module.exports = {
     deleteFriendShip,
     checkFriendShipExists,
+    getAllFriends,
 };
 

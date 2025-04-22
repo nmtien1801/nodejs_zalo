@@ -14,6 +14,7 @@ const FriendShipRoutes = (app) => {
 
     app.post("/api/deleteFriend/:friendId", friendShipController.deleteFriendShip);
     app.get("/api/checkFriendShip/:friendId", friendShipController.checkFriendShipExists);
+    app.get("/api/getAllFriends", friendShipController.getAllFriends);
 
     return app.use("", router);
 };

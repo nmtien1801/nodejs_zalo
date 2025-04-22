@@ -22,6 +22,36 @@ const getRoomChatByPhone = async (req, res) => {
     }
 }
 
+const getRoomChatMembers = async (req, res) => {
+    try {
+        const roomId = req.params.roomId;
+
+        if (!roomId) {
+            return res.status(400).json({
+                EM: "Room ID is required",
+                EC: 1,
+                DT: "",
+            });
+        }
+
+        const data = await roomChatService.getRoomChatMembers(roomId);
+
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log("check getRoomChatMembers server", err);
+        return res.status(500).json({
+            EM: "error getRoomChatMembers",
+            EC: 2,
+            DT: "",
+        });
+    }
+};
+
 module.exports = {
     getRoomChatByPhone,
-}
+    getRoomChatMembers, // Export hàm mới
+};

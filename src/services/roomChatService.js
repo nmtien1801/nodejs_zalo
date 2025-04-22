@@ -38,7 +38,35 @@ const getRoomChatByPhone = async (user, phone) => {
         });
     }
 }
+const getRoomChatMembers = async (roomId) => {
+    try {
+        // Tìm RoomChat theo roomId và populate danh sách thành viên
+        const roomChat = await RoomChat.findById(roomId).populate("members", "-password");
+
+        if (!roomChat) {
+            return {
+                EM: "RoomChat not found",
+                EC: 1,
+                DT: "",
+            };
+        }
+
+        return {
+            EM: "ok! getRoomChatMembers",
+            EC: 0,
+            DT: roomChat.members, // Trả về danh sách thành viên
+        };
+    } catch (error) {
+        console.log("check getRoomChatMembers service", error);
+        return {
+            EM: "error getRoomChatMembers service",
+            EC: 2,
+            DT: "",
+        };
+    }
+};
 
 module.exports = {
     getRoomChatByPhone,
+    getRoomChatMembers, // Export hàm mới
 };
