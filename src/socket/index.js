@@ -276,23 +276,20 @@ const socketInit = (server) => {
     socket.on("REQ_MEMBER_PERMISSION", async (response) => {
       const groupMembers = response[0].members || [];
       groupMembers.forEach((memberId) => {
-        
         const member = users[memberId];
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_MEMBER_PERMISSION", response);
-
         }
       });
     });
 
     // update deputy
     socket.on("REQ_UPDATE_DEPUTY", async (response) => {
-      const groupMembers = response[0]?.members || Object.keys(users)
+      const groupMembers = response[0]?.members || Object.keys(users);
       groupMembers.forEach((memberId) => {
-        const member = users[memberId]
+        const member = users[memberId];
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_UPDATE_DEPUTY", response);
-
         }
       });
     });
@@ -300,8 +297,8 @@ const socketInit = (server) => {
     // trans leader
     socket.on("REQ_TRANS_LEADER", async (response) => {
       io.to(users[response.newLeader.sender._id].socketId)
-          .to(users[response.oldLeader.sender._id].socketId)
-          .emit("RES_TRANS_LEADER", response);
+        .to(users[response.oldLeader.sender._id].socketId)
+        .emit("RES_TRANS_LEADER", response);
     });
 
     socket.on("disconnect", () => {
