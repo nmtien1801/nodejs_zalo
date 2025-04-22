@@ -35,6 +35,7 @@ const conversationSchema = new mongoose.Schema(
         ref: "RoomChat",
       },
     ],
+    role: { type: String, default: "member" },
   },
   { timestamps: true }
 );
