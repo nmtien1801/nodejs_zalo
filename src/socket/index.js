@@ -272,6 +272,31 @@ const socketInit = (server) => {
         .emit("RES_DELETE_FRIEND");
     });
 
+    // manage permissions member group
+    socket.on("REQ_MEMBER_PERMISSION", async (response) => {
+      const groupMembers = response[0].members || [];
+      groupMembers.forEach((memberId) => {
+        
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_MEMBER_PERMISSION", response);
+
+        }
+      });
+    });
+
+    // update deputy
+    socket.on("REQ_UPDATE_DEPUTY", async (response) => {
+      const groupMembers = response[0]?.members || Object.keys(users)
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId]
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_UPDATE_DEPUTY", response);
+
+        }
+      });
+    });
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
