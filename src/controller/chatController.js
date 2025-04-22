@@ -511,6 +511,68 @@ const transLeader = async (req, res) => {
   }
 };
 
+// const removeMemberFromGroup = async (req, res) => {
+//     try {
+//         const groupId = req.params.groupId;
+//         const memberId = req.params.memberId;
+
+//         // Gọi service để xóa member và conversation
+//         const data = await chatService.removeMemberFromGroup(groupId, memberId);
+
+//         // Đảm bảo `data` có cấu trúc hợp lệ
+//         if (!data || typeof data.EC === "undefined") {
+//             return res.status(500).json({
+//                 EM: "Unexpected error occurred",
+//                 EC: -1,
+//                 DT: "",
+//             });
+//         }
+
+//         return res.status(data.EC === 0 ? 200 : 400).json({
+//             EM: data.EM,
+//             EC: data.EC,
+//             DT: data.DT,
+//         });
+//     } catch (err) {
+//         console.error("Error in removeMemberFromGroup controller:", err);
+//         return res.status(500).json({
+//             EM: "Error removing member from group",
+//             EC: -1,
+//             DT: "",
+//         });
+//     }
+// };
+
+const removeMemberFromGroup = async (req, res) => {
+    try {
+        const groupId = req.params.groupId;
+        const memberId = req.params.memberId;
+
+        const data = await chatService.removeMemberFromGroup(groupId, memberId);
+
+        if (!data || typeof data.EC === "undefined") {
+            return res.status(500).json({
+                EM: "Unexpected error occurred",
+                EC: -1,
+                DT: "",
+            });
+        }
+
+        return res.status(data.EC === 0 ? 200 : 400).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.error("Error in removeMemberFromGroup controller:", err);
+        return res.status(500).json({
+            EM: "Error removing member from group",
+            EC: -1,
+            DT: "",
+        });
+    }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -525,5 +587,6 @@ module.exports = {
   updatePermission,
   getAllPermission,
   updateDeputy,
-  transLeader
+  transLeader,
+  removeMemberFromGroup,
 };

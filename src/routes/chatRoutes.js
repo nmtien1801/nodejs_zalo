@@ -27,6 +27,8 @@ const ChatRoutes = (app) => {
   app.post("/api/updateDeputy", chatController.updateDeputy);
   app.post("/api/transLeader", chatController.transLeader);
 
+  app.delete("/api/roomChat/:groupId/members/:memberId", chatController.removeMemberFromGroup);
+  
   return app.use("", router);
 };
 
