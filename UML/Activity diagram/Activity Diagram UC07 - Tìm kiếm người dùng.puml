@@ -1,0 +1,24 @@
+@startuml
+start
+:Người dùng truy cập chức năng\ntìm kiếm;
+:Hệ thống hiển thị ô nhập\ntừ khóa;
+:Người dùng nhập từ khóa\n(tên hoặc email);
+:Hệ thống kiểm tra từ khóa;
+
+if (Từ khóa hợp lệ?) then (yes)
+    :Hệ thống truy vấn MongoDB;
+    if (Tìm thấy người dùng?) then (yes)
+        :Hệ thống hiển thị danh sách\nkết quả tìm kiếm;
+        stop
+    else (no)
+        :Hệ thống hiển thị thông báo\n"Không tìm thấy người dùng";
+        :Người dùng nhập lại từ khóa;
+        ->Người dùng nhập từ khóa
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi\n"Vui lòng nhập từ khóa hợp lệ";
+    :Người dùng nhập lại từ khóa;
+    ->Người dùng nhập từ khóa
+endif
+
+@enduml

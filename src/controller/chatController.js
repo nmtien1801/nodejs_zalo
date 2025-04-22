@@ -39,7 +39,7 @@ const getConversationsByMember = async (req, res) => {
 
 const createConversationGroup = async (req, res) => {
   try {
-    const { nameGroup, avatarGroup, members } = req.body; // Lấy dữ liệu từ body request
+    const { avatarGroup, members, nameGroup } = req.body; // Lấy dữ liệu từ body request
 
     console.log("Tên nhóm:", nameGroup);
     console.log("Avatar nhóm:", avatarGroup);
@@ -81,12 +81,12 @@ const saveMsg = async (data) => {
       sender: {
         _id: data.sender._id,
         name: data.sender.username,
-        phone: data.sender.phone,
+        phone: data.sender?.phone || null,
       },
       receiver: {
         _id: data.receiver._id,
         name: data.receiver.username,
-        phone: data.receiver.phone,
+        phone: data.receiver?.phone || null,
         members: data.receiver.members,
       },
       isRead: false,
@@ -149,7 +149,6 @@ const getMsg = async (req, res) => {
         }
         return msg;
       });
-    
     } else {
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
@@ -340,6 +339,178 @@ const delMsg = async (req, res) => {
   }
 };
 
+const handleReaction = async (req, res) => {
+  try {
+    const { messageId, userId, emoji } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!messageId || !userId || !emoji) {
+      return res.status(400).json({
+        EM: "Missing required fields (messageId, userId, emoji)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để xử lý logic reaction
+    const result = await chatService.handleReaction(messageId, userId, emoji);
+
+    // Trả về kết quả từ service
+    return res.status(200).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in handleReaction controller: ", error);
+    return res.status(500).json({
+      EM: "Error handling reaction", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const getReactionsByMessageId = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!messageId) {
+      return res.status(400).json({
+        EM: "Message ID is required", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để lấy dữ liệu
+    const result = await chatService.getReactionsByMessageId(messageId);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in getReactionsByMessageId controller: ", error);
+    return res.status(500).json({
+      EM: "Error fetching reactions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const updatePermission = async (req, res) => {
+  try {
+    const { groupId, newPermission } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!groupId || !newPermission) {
+      return res.status(400).json({
+        EM: "Missing required fields (groupId, memberId, newPermission)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để cập nhật quyền
+    const result = await chatService.updatePermission(groupId, newPermission);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in updatePermission controller: ", error);
+    return res.status(500).json({
+      EM: "Error updating permission", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const getAllPermission = async (req, res) => {
+  try {
+    // Gọi service để lấy danh sách quyền
+    const result = await chatService.getAllPermission();
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in getAllPermission controller: ", error);
+    return res.status(500).json({
+      EM: "Error fetching permissions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const updateDeputy = async (req, res) => {
+  try {
+    const { members } = req.body;
+
+    // Gọi service để cập nhật quyền
+    const result = await chatService.updateDeputy(members);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in updateDeputy controller: ", error);
+    return res.status(500).json({
+      EM: "Error updating deputy", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
+const transLeader = async (req, res) => {
+  try {
+    const { groupId, newLeaderId } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!groupId || !newLeaderId) {
+      return res.status(400).json({
+        EM: "Missing required fields (groupId, newLeaderId)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để chuyển quyền trưởng nhóm
+    const result = await chatService.transLeader(groupId, newLeaderId);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in transLeader controller: ", error);
+    return res.status(500).json({
+      EM: "Error transferring leader", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -349,4 +520,10 @@ module.exports = {
   createConversationGroup,
   recallMsg,
   deleteMsgForMe,
+  handleReaction,
+  getReactionsByMessageId,
+  updatePermission,
+  getAllPermission,
+  updateDeputy,
+  transLeader
 };

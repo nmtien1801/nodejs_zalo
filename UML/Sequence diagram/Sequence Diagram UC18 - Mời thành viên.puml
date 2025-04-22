@@ -1,0 +1,21 @@
+@startuml
+actor "Người dùng" as User
+actor "Người được mời" as Member
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập chức năng quản lý nhóm
+System -> User: Hiển thị tùy chọn mời thành viên
+User -> System: Chọn người và gửi lời mời
+System -> Member: Gửi thông báo mời
+
+alt Chấp nhận
+    Member -> System: Chấp nhận lời mời
+    System -> DB: Thêm thành viên vào nhóm
+    DB --> System: Xác nhận thêm
+else Từ chối
+    Member -> System: Từ chối lời mời
+    System -> User: Thông báo "Lời mời bị từ chối"
+end alt
+
+@enduml

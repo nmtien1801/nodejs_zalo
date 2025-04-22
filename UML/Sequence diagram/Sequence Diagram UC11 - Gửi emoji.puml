@@ -1,0 +1,21 @@
+@startuml
+actor "Người dùng" as User
+actor "Người nhận" as Receiver
+participant "Hệ thống" as System
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở cuộc trò chuyện
+System -> User: Hiển thị bảng chọn emoji
+User -> System: Chọn và gửi emoji
+System -> WS: Gửi emoji
+System -> DB: Lưu emoji
+DB --> System: Xác nhận lưu
+
+alt Người nhận trực tuyến
+    WS -> Receiver: Gửi emoji
+else Người nhận không trực tuyến
+    System -> DB: Lưu emoji để gửi sau
+end alt
+
+@enduml

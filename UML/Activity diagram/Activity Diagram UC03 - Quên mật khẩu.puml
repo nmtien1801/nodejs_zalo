@@ -1,0 +1,25 @@
+@startuml
+start
+:Người dùng truy cập trang\nquên mật khẩu;
+:Hệ thống hiển thị biểu mẫu\nyêu cầu email;
+:Người dùng nhập email;
+:Hệ thống kiểm tra email\ntồn tại trong MongoDB;
+
+if (Email tồn tại?) then (yes)
+    :Hệ thống tạo liên kết\nđặt lại mật khẩu;
+    :Hệ thống gửi email\nchứa liên kết;
+    if (Gửi email thành công?) then (yes)
+        :Người dùng nhận email\nvà nhấp liên kết;
+        stop
+    else (no)
+        :Hệ thống hiển thị lỗi\n"Lỗi gửi email";
+        :Người dùng nhập lại email;
+        ->Người dùng nhập email
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi\n"Email không tồn tại";
+    :Người dùng nhập lại email;
+    ->Người dùng nhập email
+endif
+
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập danh sách liên hệ
+User -> System: Chọn người và nhấn "Xóa bạn"
+System -> User: Yêu cầu xác nhận
+
+alt Xác nhận xóa
+    User -> System: Xác nhận
+    System -> DB: Xóa người khỏi danh sách liên hệ
+    DB --> System: Xác nhận xóa
+    System -> User: Thông báo "Xóa bạn thành công"
+else Hủy
+    User -> System: Hủy
+    System -> User: Hủy hành động
+end alt
+
+@enduml

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 const Conversation = require("../models/conversation");
+const Permission = require("../models/permission");
 
 const connectDB = async () => {
   try {
@@ -9,47 +10,36 @@ const connectDB = async () => {
     console.log(`MongoDB connected to database: ${process.env.DATABASE_NAME}`);
 
     // tạo newConversation
-    // const newConversation = new Conversation({
-    //   sender: { _id: new mongoose.Types.ObjectId() },
-    //   receiver: {
-    //     _id: new mongoose.Types.ObjectId(),
-    //     username: "Cloud",
-    //     phone: "0987654321",
-    //   },
-    //   message: "Xin chào!",
-    //   time: "26/07/24",
-    //   avatar: "/avatar.jpg",
-    //   type: "1",
-    // });
+    const conversations = [
+      {
+        sender: { _id: new mongoose.Types.ObjectId() },
+        receiver: {
+          _id: new mongoose.Types.ObjectId(),
+          username: "Alice",
+          phone: "0123456789",
+          permission: [1, 2, 3, 4, 5],
+        },
+        message: "Chào bạn!",
+        time: "20/04/2025",
+        startTime: new Date(),
+        avatar: "/images/alice.jpg",
+        members: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()],
+        type: 1, // person
+        role: "leader",
+      },
+    ];
 
-    // const newConversation2 = new Conversation({
-    //   sender: { _id: new mongoose.Types.ObjectId() },
-    //   receiver: {
-    //     _id: new mongoose.Types.ObjectId(),
-    //     username: "user",
-    //     phone: "0987654322",
-    //   },
-    //   message: "Xin chào!",
-    //   time: "26/07/24",
-    //   avatar: "/avatar.jpg",
-    //   type: "1",
-    // });
+    // tạo permissions
+    const permissions = [
+      { code: 1, desc: "Thay đổi tên & ảnh đại diện của nhóm" },
+      { code: 2, desc: "Ghim tin nhắn, ghi chú, bình chọn lên đầu hội thoại" },
+      { code: 3, desc: "Tạo mới ghi chú, nhắc hẹn" },
+      { code: 4, desc: "Tạo mới bình chọn" },
+      { code: 5, desc: "Gửi tin nhắn" },
+    ];
 
-    // const newConversation3 = new Conversation({
-      //   sender: { _id: new mongoose.Types.ObjectId() },
-      //   receiver: {
-      //     _id: new mongoose.Types.ObjectId(),
-      //     username: "Thư",
-      //     phone: "0987654321",
-      //   },
-      //   message: "Xin chào!",
-      //   time: "26/07/24",
-      //   avatar: "/avatar.jpg",
-      //   type: "1",
-      // });
-    // newConversation.save();
-    // newConversation2.save();
-
+    // Conversation.insertMany(conversations);
+    // await Permission.insertMany(permissions);
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
     process.exit(1);

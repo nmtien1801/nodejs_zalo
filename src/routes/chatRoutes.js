@@ -20,6 +20,12 @@ const ChatRoutes = (app) => {
   app.post("/api/createConversationGroup", chatController.createConversationGroup);
   app.put("/api/messages/recall/:id", chatController.recallMsg); // Thu hồi tin nhắn 
   app.put("/api/messages/deleteForMe/:id", chatController.deleteMsgForMe); // Xóa chỉ ở phía tôi
+  app.post("/api/messages/handleReaction", chatController.handleReaction); // Xử lý phản ứng
+  app.get("/api/messages/:id/reactions", chatController.getReactionsByMessageId);
+  app.post("/api/updatePermission", chatController.updatePermission);
+  app.get("/api/getAllPermission", chatController.getAllPermission);
+  app.post("/api/updateDeputy", chatController.updateDeputy);
+  app.post("/api/transLeader", chatController.transLeader);
 
   return app.use("", router);
 };

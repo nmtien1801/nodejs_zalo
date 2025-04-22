@@ -1,0 +1,27 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập trang quên mật khẩu
+System -> User: Hiển thị biểu mẫu yêu cầu email
+User -> System: Nhập email
+System -> DB: Kiểm tra email tồn tại
+
+alt Email tồn tại
+    DB --> System: Email hợp lệ
+    System -> System: Tạo liên kết đặt lại mật khẩu
+    System -> User: Gửi email chứa liên kết
+    alt Gửi email thành công
+        User -> System: Nhấp liên kết để đặt lại mật khẩu
+    else Gửi email thất bại
+        System -> User: Hiển thị lỗi "Lỗi gửi email"
+        User -> System: Nhập lại email
+    end alt
+else Email không tồn tại
+    DB --> System: Email không tồn tại
+    System -> User: Hiển thị lỗi "Email không tồn tại"
+    User -> System: Nhập lại email
+end alt
+
+@enduml

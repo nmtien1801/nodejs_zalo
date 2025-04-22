@@ -1,0 +1,22 @@
+@startuml
+actor "Người dùng" as User
+actor "Người nhận" as Receiver
+participant "Hệ thống" as System
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở cuộc trò chuyện
+User -> System: Chọn tin nhắn và nhấn "Thu hồi"
+System -> System: Kiểm tra thời gian thu hồi
+
+alt Có thể thu hồi
+    System -> WS: Gửi thông báo thu hồi
+    WS -> Receiver: Gỡ tin nhắn
+    System -> DB: Cập nhật trạng thái tin nhắn
+    DB --> System: Xác nhận cập nhật
+    System -> User: Gỡ tin nhắn khỏi giao diện
+else Không thể thu hồi
+    System -> User: Hiển thị lỗi "Không thể thu hồi"
+end alt
+
+@enduml

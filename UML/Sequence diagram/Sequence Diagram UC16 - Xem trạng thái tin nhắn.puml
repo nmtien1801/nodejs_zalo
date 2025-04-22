@@ -1,0 +1,21 @@
+@startuml
+actor "Người dùng" as User
+actor "Người nhận" as Receiver
+participant "Hệ thống" as System
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở cuộc trò chuyện
+System -> User: Hiển thị tin nhắn với trạng thái
+Receiver -> System: Xem tin nhắn
+
+alt Người nhận trực tuyến
+    System -> WS: Gửi cập nhật trạng thái
+    WS -> User: Cập nhật trạng thái "đã xem"
+    System -> DB: Cập nhật trạng thái
+    DB --> System: Xác nhận cập nhật
+else Người nhận không trực tuyến
+    System -> User: Hiển thị trạng thái "đã gửi" hoặc "đã nhận"
+end alt
+
+@enduml

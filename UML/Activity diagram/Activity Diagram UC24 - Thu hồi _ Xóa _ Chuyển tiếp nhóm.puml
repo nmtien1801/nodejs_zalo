@@ -1,0 +1,32 @@
+@startuml
+start
+:Người dùng mở nhóm trò chuyện;
+:Người dùng chọn tin nhắn\nvà chọn hành động\n(thu hồi/xóa/chuyển tiếp);
+:Hệ thống kiểm tra quyền\nvà thời gian;
+
+if (Hành động được phép?) then (yes)
+    if (Thu hồi?) then (yes)
+        :Hệ thống gửi thông báo thu hồi\nqua WebSocket;
+        :Hệ thống cập nhật trạng thái\ntrong MongoDB;
+        :Tin nhắn được gỡ khỏi giao diện;
+    elseif (Xóa?) then (yes)
+        :Hệ thống cập nhật trạng thái\ntrong MongoDB;
+        :Tin nhắn được gỡ khỏi\ngiao diện người dùng;
+    else (Chuyển tiếp)
+        :Hệ thống hiển thị danh sách\nđích đến;
+        :Người dùng chọn đích\nvà xác nhận;
+        if (Đích hợp lệ?) then (yes)
+            :Hệ thống gửi tin nhắn\nqua WebSocket đến đích;
+            :Hệ thống lưu tin nhắn\nvào MongoDG;
+        else (no)
+            :Hệ thống hiển thị lỗi\n"Chọn đích hợp lệ";
+            ->Người dùng chọn đích\nvà xác nhận
+        endif
+    endif
+    stop
+else (no)
+    :Hệ thống hiển thị lỗi\n"Hành động không được phép";
+    stop
+endif
+
+@enduml

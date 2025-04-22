@@ -1,0 +1,23 @@
+@startuml
+actor "Người dùng" as User
+participant "Hệ thống" as System
+participant "MongoDB" as DB
+
+User -> System: Truy cập trang đăng nhập
+System -> User: Hiển thị biểu mẫu đăng nhập
+User -> System: Nhập thông tin (email/tên, mật khẩu)
+System -> DB: Kiểm tra thông tin đăng nhập
+
+alt Thông tin đúng
+    DB --> System: Xác nhận hợp lệ
+    System -> System: Tạo mã JWT
+    System -> User: Chuyển hướng đến giao diện chính
+else Thông tin sai
+    DB --> System: Thông tin không hợp lệ
+    System -> User: Hiển thị lỗi "Email/tên hoặc mật khẩu sai"
+    User -> System: Nhập lại thông tin
+else Lỗi kết nối
+    System -> User: Hiển thị lỗi "Vui lòng thử lại sau"
+end alt
+
+@enduml

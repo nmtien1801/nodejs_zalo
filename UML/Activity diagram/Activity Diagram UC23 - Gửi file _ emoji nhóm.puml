@@ -1,0 +1,23 @@
+@startuml
+start
+:Người dùng mở nhóm trò chuyện;
+:Hệ thống hiển thị tùy chọn\ngửi file/emoji;
+:Người dùng chọn file/emoji\nvà gửi;
+:Hệ thống kiểm tra file\n(nếu là file);
+
+if (File/emoji hợp lệ?) then (yes)
+    if (Là file?) then (yes)
+        :Hệ thống tải file lên AWS S3;
+        :Hệ thống lưu đường dẫn\nvào MongoDB;
+    else (no)
+    endif
+    :Hệ thống gửi file/emoji qua\nWebSocket đến thành viên;
+    :Thành viên nhận nội dung\ntrong thời gian thực;
+    stop
+else (no)
+    :Hệ thống hiển thị lỗi\n"File không hợp lệ";
+    :Người dùng chọn lại file/emoji;
+    ->Người dùng chọn file/emoji\nvà gửi
+endif
+
+@enduml

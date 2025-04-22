@@ -66,8 +66,12 @@ const socketInit = (server) => {
             io.to(member.socketId).emit("RECEIVED_MSG", isSaved);
           }
         });
+        console.log("groupMembers", groupMembers);
+
       }
     });
+
+
 
     socket.on("RECALL", (msg) => {
       let senderId = msg.sender._id;
@@ -86,10 +90,6 @@ const socketInit = (server) => {
           }
         });
       }
-    });
-
-    socket.on("DELETE_MSG", (msg) => {
-      socket.to(msg.receiver.socketId).emit("DELETED_MSG", msg);
     });
 
     // CALL
@@ -236,11 +236,11 @@ const socketInit = (server) => {
 
     // thêm bạn
     socket.on("REQ_ADD_fRIEND", async (response) => {
-      // người dùng onl
+      //người dùng onl
       if (users[response.toUser].socketId) {
         io.to(users[response.fromUser].socketId)
           .to(users[response.toUser].socketId)
-          .emit("RES_ADD_FRIEND");
+          .emit("RES_ADD_FRIEND", response);
       }
       // người dùng off
       else {
@@ -256,7 +256,7 @@ const socketInit = (server) => {
     });
 
     // từ chối lời mời
-    socket.on("REQ_REJECT_fRIEND", async (response) => {
+    socket.on("REQ_REJECT_FRIEND", async (response) => {
       io.to(users[response.fromUser].socketId)
         .to(users[response.toUser].socketId)
         .emit("RES_REJECT_FRIEND");
@@ -264,9 +264,10 @@ const socketInit = (server) => {
 
     // chấp nhận lời mời
     socket.on("REQ_ACCEPT_FRIEND", async (response) => {
-      io.to(users[response.user1].socketId)
-        .to(users[response.user2].socketId)
-        .emit("RES_ACCEPT_FRIEND");
+
+
+
+      io.emit("RES_ACCEPT_FRIEND");
     });
 
     // xóa bạn
@@ -274,6 +275,38 @@ const socketInit = (server) => {
       io.to(users[response.user1].socketId)
         .to(users[response.user2].socketId)
         .emit("RES_DELETE_FRIEND");
+    });
+
+    // manage permissions member group
+    socket.on("REQ_MEMBER_PERMISSION", async (response) => {
+      const groupMembers = response[0].members || [];
+      groupMembers.forEach((memberId) => {
+
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_MEMBER_PERMISSION", response);
+
+        }
+      });
+    });
+
+    // update deputy
+    socket.on("REQ_UPDATE_DEPUTY", async (response) => {
+      const groupMembers = response[0]?.members || Object.keys(users)
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId]
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_UPDATE_DEPUTY", response);
+
+        }
+      });
+    });
+
+    // trans leader
+    socket.on("REQ_TRANS_LEADER", async (response) => {
+      io.to(users[response.newLeader.sender._id].socketId)
+        .to(users[response.oldLeader.sender._id].socketId)
+        .emit("RES_TRANS_LEADER", response);
     });
 
     socket.on("disconnect", () => {

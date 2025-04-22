@@ -1,0 +1,24 @@
+@startuml
+start
+:Người dùng mở nhóm trò chuyện;
+:Hệ thống hiển thị khung\nnhập tin nhắn;
+:Người dùng nhập tin nhắn văn bản;
+:Hệ thống kiểm tra tin nhắn;
+
+if (Tin nhắn hợp lệ?) then (yes)
+    :Hệ thống gửi tin nhắn qua\nWebSocket đến thành viên;
+    :Hệ thống lưu tin nhắn\nvào MongoDB;
+    if (Thành viên trực tuyến?) then (yes)
+        :Thành viên nhận tin nhắn\ntrong thời gian thực;
+        stop
+    else (no)
+        :Hệ thống lưu tin nhắn\nvà gửi khi trực tuyến;
+        stop
+    endif
+else (no)
+    :Hệ thống hiển thị lỗi\n"Tin nhắn không hợp lệ";
+    :Người dùng chỉnh sửa tin nhắn;
+    ->Người dùng nhập tin nhắn văn bản
+endif
+
+@enduml

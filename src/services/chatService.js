@@ -2,7 +2,9 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const Message = require("../models/message");
 const Conversation = require("../models/conversation");
+const ReactionMessage = require("../models/reactionMessage");
 const RoomChat = require("../models/roomChat");
+const Permission = require("../models/permission");
 
 const getConversations = async (senderId) => {
   try {
@@ -34,45 +36,15 @@ const getConversations = async (senderId) => {
     };
   }
 };
-// const getConversationsByMember = async (userId) => {
-//   try {
-//     // Kiểm tra userId có hợp lệ không
-//     if (!mongoose.isValidObjectId(userId)) {
-//       throw new Error('ID thành viên không hợp lệ');
-//     }
-
-//     // Tìm các conversation mà userId có trong mảng members
-//     const conversations = await Conversation.find({
-//       members: {
-//         $in: [new mongoose.Types.ObjectId(userId)]
-//       }
-//     })
-//       .sort({ createdAt: -1 }); // Sắp xếp mới nhất trước
-//     console.log("check getConversationsByMember", conversations);
-
-//     return {
-//       EM: "ok! getConversationById",
-//       EC: 0,
-//       DT: conversations,
-//     };
-//   } catch (error) {
-//     console.log("check getConversationById service", error);
-//     return res.status(500).json({
-//       EM: "error getConversationById service", //error message
-//       EC: 2, //error code
-//       DT: "", // data
-//     });
-//   }
-// };
 
 const getConversationsByMember = async (userId) => {
   try {
     // Kiểm tra userId có hợp lệ không
     if (!mongoose.isValidObjectId(userId)) {
       return {
-        EM: 'ID thành viên không hợp lệ',
+        EM: "ID thành viên không hợp lệ",
         EC: 1,
-        DT: []
+        DT: [],
       };
     }
 
@@ -83,40 +55,40 @@ const getConversationsByMember = async (userId) => {
       {
         $match: {
           members: {
-            $in: [currentUserId]
-          }
-        }
+            $in: [currentUserId],
+          },
+        },
       },
       {
         $lookup: {
-          from: 'users',
-          localField: 'members',
-          foreignField: '_id',
-          as: 'memberDetails'
-        }
+          from: "users",
+          localField: "members",
+          foreignField: "_id",
+          as: "memberDetails",
+        },
       },
       {
         $addFields: {
           // Xác định người nhận (người không phải là current user)
           receiver: {
             $filter: {
-              input: '$memberDetails',
-              as: 'member',
-              cond: { $ne: ['$$member._id', currentUserId] }
-            }
+              input: "$memberDetails",
+              as: "member",
+              cond: { $ne: ["$$member._id", currentUserId] },
+            },
           },
           // Giữ thông tin current user
           sender: {
             $filter: {
-              input: '$memberDetails',
-              as: 'member',
-              cond: { $eq: ['$$member._id', currentUserId] }
-            }
+              input: "$memberDetails",
+              as: "member",
+              cond: { $eq: ["$$member._id", currentUserId] },
+            },
           },
           // Chuyển mảng receiver thành object (vì mỗi conversation chỉ có 2 người)
-          receiverInfo: { $arrayElemAt: ['$receiver', 0] },
-          senderInfo: { $arrayElemAt: ['$sender', 0] }
-        }
+          receiverInfo: { $arrayElemAt: ["$receiver", 0] },
+          senderInfo: { $arrayElemAt: ["$sender", 0] },
+        },
       },
       {
         $project: {
@@ -124,57 +96,75 @@ const getConversationsByMember = async (userId) => {
           createdAt: 1,
           updatedAt: 1,
           // Thông tin người nhận
-          receiverId: '$receiverInfo._id',
-          receiverName: '$receiverInfo.username',
-          receiverAvatar: '$receiverInfo.avatar',
-          receiverPhone: '$receiverInfo.phone',
+          receiverId: "$receiverInfo._id",
+          receiverName: "$receiverInfo.username",
+          receiverAvatar: "$receiverInfo.avatar",
+          receiverPhone: "$receiverInfo.phone",
           // Thông tin người gửi (current user)
-          senderId: '$senderInfo._id',
+          senderId: "$senderInfo._id",
           lastMessage: 1, // Giả sử có trường lastMessage
-          unreadCount: 1  // Giả sử có trường unreadCount
-        }
+          unreadCount: 1, // Giả sử có trường unreadCount
+        },
       },
       {
-        $sort: { updatedAt: -1 }
-      }
+        $sort: { updatedAt: -1 },
+      },
     ]);
 
     return {
-      EM: 'Lấy danh sách hội thoại thành công',
+      EM: "Lấy danh sách hội thoại thành công",
       EC: 0,
-      DT: conversations
+      DT: conversations,
     };
   } catch (error) {
-    console.error('Lỗi getConversationsByMember:', error);
+    console.error("Lỗi getConversationsByMember:", error);
     return {
-      EM: 'Lỗi server khi lấy danh sách hội thoại',
+      EM: "Lỗi server khi lấy danh sách hội thoại",
       EC: 2,
-      DT: []
+      DT: [],
     };
   }
 };
 
 const createConversationGroup = async (nameGroup, avatarGroup, members) => {
   try {
-    const conversation = await Conversation.create({
-      sender: {
-        _id: members[0]._id,
-      },
-      receiver: {
-        _id: members[1]._id,
-      },
-      members: members,
-      name: nameGroup,
+    const roomChat = await RoomChat.create({
+      username: nameGroup,
       avatar: avatarGroup,
-      message: "Bắt đầu cuộc trò chuyện mới",
-      time: Date.now(),
-      type: "2"
+      members: members,
+      phone: "1",
+      permission: [1, 2, 3, 4, 5, 6, 7],
     });
+
+    const conversations = [];
+
+    for (let i = 0; i < members.length; i++) {
+      const role = i === 0 ? "leader" : "member";
+
+      const conversation = await Conversation.create({
+        sender: {
+          _id: members[i],
+        },
+        receiver: {
+          _id: roomChat._id,
+          username: roomChat.username,
+        },
+        members: members,
+        name: nameGroup,
+        avatar: avatarGroup,
+        message: "Bắt đầu cuộc trò chuyện mới",
+        time: Date.now(),
+        type: "2",
+        role: role,
+      });
+
+      conversations.push(conversation);
+    }
 
     return {
       EM: "ok! createConversationGroup",
       EC: 0,
-      DT: conversation,
+      DT: conversations,
     };
   } catch (error) {
     console.log("check createConversationGroup service", error);
@@ -184,10 +174,318 @@ const createConversationGroup = async (nameGroup, avatarGroup, members) => {
       DT: "", // no data
     };
   }
-}
+};
+
+const getReactionsByMessageId = async (messageId) => {
+  try {
+    if (!messageId) {
+      return {
+        EM: "Message ID is required", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return {
+        EM: "Invalid messageId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Lấy tất cả reaction của messageId
+    const reactions = await ReactionMessage.find({ messageId }).populate({
+      path: "userId",
+      select: "_id username avatar", // Chỉ lấy các trường cần thiết của user
+    });
+
+    return {
+      EM: "Reactions fetched successfully", // success message
+      EC: 0, // success code
+      DT: reactions, // Dữ liệu các reaction
+    };
+  } catch (error) {
+    console.error("Error in getReactionsByMessageId: ", error);
+    return {
+      EM: "Error fetching reactions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const handleReaction = async (messageId, userId, emoji) => {
+  try {
+    if (!messageId || !userId || !emoji) {
+      return {
+        EM: "Missing required fields (messageId, userId, emoji)", // error message
+        EC: 1, // error code
+        DT: messageId + ", " + userId + ", " + emoji, // no data
+      };
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(messageId)) {
+      return {
+        EM: "Invalid messageId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Kiểm tra xem người dùng đã reaction cho tin nhắn này chưa
+    const existingReaction = await ReactionMessage.findOne({
+      messageId,
+      userId,
+    });
+
+    if (existingReaction) {
+      if (existingReaction.emoji === emoji) {
+        // Nếu emoji giống nhau, xóa reaction
+        try {
+          await ReactionMessage.findByIdAndDelete(existingReaction._id);
+          return {
+            EM: "Reaction removed successfully", // success message
+            EC: 0, // success code
+            DT: null, // Không trả về dữ liệu
+          };
+        } catch (error) {
+          console.error("Error deleting reaction: ", error);
+          return {
+            EM: "Error deleting reaction", // error message
+            EC: -1, // error code
+            DT: "", // no data
+          };
+        }
+      } else {
+        // Nếu emoji khác nhau, cập nhật reaction
+        existingReaction.emoji = emoji;
+        await existingReaction.save();
+        return {
+          EM: "Reaction updated successfully", // success message
+          EC: 0, // success code
+          DT: existingReaction, // Trả về reaction đã cập nhật
+        };
+      }
+    } else {
+      // Nếu chưa có reaction, thêm mới
+      const newReaction = await ReactionMessage.create({
+        messageId,
+        userId,
+        emoji,
+      });
+      return {
+        EM: "Reaction added successfully", // success message
+        EC: 0, // success code
+        DT: newReaction, // Trả về reaction vừa thêm
+      };
+    }
+  } catch (error) {
+    console.error("Error in handleReaction: ", error);
+    return {
+      EM: "Error handling reaction", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const updatePermission = async (groupId, newPermission) => {
+  try {
+    // Kiểm tra groupId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(groupId)) {
+      return {
+        EM: "Invalid groupId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Tìm tất cả các conversation có receiver._id = groupId
+    const conversations = await Conversation.find({
+      "receiver._id": groupId,
+    });
+
+    if (!conversations || conversations.length === 0) {
+      return {
+        EM: "No conversations found for the given groupId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Cập nhật quyền cho tất cả các conversation
+    const updatedConversations = await Promise.all(
+      conversations.map(async (conversation) => {
+        conversation.receiver.permission = newPermission;
+        // Thêm trường avatar vào từng conversation
+        const user = await RoomChat.findById(conversation.receiver._id);
+        conversation.avatar = user?.avatar || null;
+        return await conversation.save();
+      })
+    );
+
+    return {
+      EM: "Permissions updated successfully", // success message
+      EC: 0, // success code
+      DT: updatedConversations, // Trả về danh sách conversation đã cập nhật
+    };
+  } catch (error) {
+    console.error("Error in updatePermission service: ", error);
+    return {
+      EM: "Error updating permissions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const getAllPermission = async () => {
+  try {
+    const permission = await Permission.find();
+
+    return {
+      EM: "Permissions fetched successfully", // success message
+      EC: 0, // success code
+      DT: permission, // Trả về danh sách quyền
+    };
+  } catch (error) {
+    console.error("Error in getAllPermissionByGroup service: ", error);
+    return {
+      EM: "Error fetching permissions", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
+const updateDeputy = async (members) => {
+  try {
+    
+    // Nếu members rỗng => chuyển tất cả deputy -> member (trừ leader)
+    if (!Array.isArray(members) || members.length === 0) {
+      const result = await Conversation.updateMany(
+        { role: { $ne: "leader" } },
+        { $set: { role: "member" } }
+      );
+
+      return {
+        EM: "Tất cả deputy đã được hạ xuống member", // success message
+        EC: 0,
+        DT: result,
+      };
+    }
+
+    // Nếu có danh sách members cụ thể => update từng cái thành deputy
+    const updateResults = await Promise.all(
+      members.map(async (member) => {
+        if (member.sender?._id && member.receiver?._id) {
+          return await Conversation.findOneAndUpdate(
+            {
+              "sender._id": member.sender._id,
+              "receiver._id": member.receiver._id,
+              role: { $ne: "leader" },
+            },
+            {
+              $set: { role: "deputy" },
+            },
+            { new: true }
+          );
+        }
+        return null;
+      })
+    );
+
+    const successfulUpdates = updateResults.filter((result) => result !== null);
+
+    return {
+      EM: "Đã cập nhật deputy thành công",
+      EC: 0,
+      DT: successfulUpdates,
+    };
+  } catch (error) {
+    console.error("Lỗi trong updateDeputy: ", error);
+    return {
+      EM: "Lỗi khi cập nhật deputy",
+      EC: -1,
+      DT: null,
+    };
+  }
+};
+
+const transLeader = async (groupId, newLeaderId) => {
+  try {
+    // Kiểm tra groupId và newLeaderId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(newLeaderId)) {
+      return {
+        EM: "Invalid groupId or newLeaderId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Tìm conversation hiện tại của trưởng nhóm
+    const currentLeaderConversation = await Conversation.findOne({
+      "receiver._id": groupId,
+      role: "leader",
+    });
+
+    if (!currentLeaderConversation) {
+      return {
+        EM: "Current leader not found", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Hạ cấp trưởng nhóm hiện tại thành thành viên
+    currentLeaderConversation.role = "member";
+    await currentLeaderConversation.save();
+
+    // Tìm conversation của thành viên mới sẽ trở thành trưởng nhóm
+    const newLeaderConversation = await Conversation.findOne({
+      "receiver._id": groupId,
+      "sender._id": newLeaderId,
+    });
+
+    if (!newLeaderConversation) {
+      return {
+        EM: "New leader not found in the group", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Nâng cấp thành viên mới thành trưởng nhóm
+    newLeaderConversation.role = "leader";
+    await newLeaderConversation.save();
+
+    return {
+      EM: "Leader transferred successfully", // success message
+      EC: 0, // success code
+      DT: {
+        oldLeader: currentLeaderConversation,
+        newLeader: newLeaderConversation,
+      },
+    };
+  } catch (error) {
+    console.error("Error in transLeader service: ", error);
+    return {
+      EM: "Error transferring leader", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
 
 module.exports = {
   getConversations,
+  createConversationGroup,
+  handleReaction,
+  getReactionsByMessageId,
   getConversationsByMember,
-  createConversationGroup
+  updatePermission,
+  getAllPermission,
+  updateDeputy,
+  transLeader
 };

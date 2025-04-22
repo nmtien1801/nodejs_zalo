@@ -148,4 +148,29 @@ const uploadAvatar2 = async (req, res) => {
   }
 };
 
-module.exports = { uploadAvatar, uploadAvatarProfile, uploadAvatar2 };
+const uploadAvatarGroup = async (req, res) => {
+  try {
+    let { groupId, avatar } = req.body;
+
+    let user = await RoomChat.findById(groupId)
+    if (user) {
+      user.avatar = avatar;
+      user.save();
+    }
+
+    return res.status(200).json({
+      EM: "Avatar uploaded successfully",
+      EC: 0,
+      DT: user.avatar,
+    });
+  } catch (err) {
+    console.error("uploadAvatarGroup error:", err);
+    return res.status(500).json({
+      EM: "Error uploadAvatarGroup",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
+module.exports = { uploadAvatar, uploadAvatarProfile, uploadAvatar2 , uploadAvatarGroup};

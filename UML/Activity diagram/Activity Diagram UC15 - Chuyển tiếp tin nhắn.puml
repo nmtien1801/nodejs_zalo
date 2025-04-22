@@ -1,0 +1,18 @@
+@startuml
+start
+:Người dùng mở cuộc trò chuyện;
+:Người dùng chọn tin nhắn\nvà nhấn "Chuyển tiếp";
+:Hệ thống hiển thị danh sách\nliên hệ/nhóm;
+:Người dùng chọn đích đến\nvà xác nhận;
+
+if (Đích hợp lệ?) then (yes)
+    :Hệ thống gửi tin nhắn\nqua WebSocket đến đích;
+    :Hệ thống lưu tin nhắn\nvào MongoDB;
+    stop
+else (no)
+    :Hệ thống hiển thị lỗi\n"Chọn đích hợp lệ";
+    :Người dùng chọn lại đích;
+    ->Người dùng chọn đích đến\nvà xác nhận
+endif
+
+@enduml

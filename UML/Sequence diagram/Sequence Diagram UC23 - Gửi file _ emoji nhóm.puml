@@ -1,0 +1,30 @@
+@startuml
+actor "Người dùng" as User
+actor "Thành viên" as Member
+participant "Hệ thống" as System
+participant "AWS S3" as S3
+participant "WebSocket" as WS
+participant "MongoDB" as DB
+
+User -> System: Mở nhóm trò chuyện
+System -> User: Hiển thị tùy chọn gửi file/emoji
+User -> System: Chọn file/emoji và gửi
+System -> System: Kiểm tra file/emoji
+
+alt File/emoji hợp lệ
+    alt Là file
+        System -> S3: Tải file lên
+        S3 --> System: Đường dẫn file
+        System -> DB: Lưu đường dẫn
+    else Là emoji
+        System -> DB: Lưu emoji
+    end alt
+    DB --> System: Xác nhận lưu
+    System -> WS: Gửi file/emoji đến thành viên
+    WS -> Member: Gửi nội dung
+else File/emoji không hợp lệ
+    System -> User: Hiển thị lỗi "File không hợp lệ"
+    User -> System: Chọn lại file/emoji
+end alt
+
+@enduml

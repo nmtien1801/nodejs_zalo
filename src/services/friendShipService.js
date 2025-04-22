@@ -81,6 +81,47 @@ const checkFriendShipExists = async (userId, friendId) => {
     }
 }
 
+const getFriends = async (userId) => {
+    try {
+        // Tìm tất cả các mối quan hệ bạn bè của userId
+        const friendships = await FriendShip.find({
+            $or: [{ user1: userId }, { user2: userId }],
+            status: 0,
+        }).populate({
+            path: "user1 user2",
+            select: "_id username avatar phone",
+        });
+
+        // Lọc danh sách bạn bè
+        const friends = friendships.map((friendship) => {
+            const friend =
+                friendship.user1._id.toString() === userId.toString()
+                    ? friendship.user2
+                    : friendship.user1;
+
+            return {
+                _id: friend._id,
+                username: friend.username,
+                avatar: friend.avatar,
+                phone: friend.phone,
+                since: friendship.since,
+            };
+        });
+
+        return {
+            EM: "Friends fetched successfully", // success message
+            EC: 0, // success code
+            DT: friends, // danh sách bạn bè
+        };
+    } catch (error) {
+        console.error("Error in getFriends service: ", error);
+        return {
+            EM: "Error fetching friends", // error message
+            EC: -1, // error code
+            DT: "", // no data
+        };
+    }
+};
 const getAllFriends = async (userId) => {
     try {
         // Tìm tất cả các mối quan hệ bạn bè liên quan đến userId và populate thông tin user
@@ -122,6 +163,7 @@ const getAllFriends = async (userId) => {
 };
 
 module.exports = {
-    deleteFriendShip, checkFriendShipExists, getAllFriends,
+    deleteFriendShip, checkFriendShipExists,
+    getAllFriends, getFriends
 };
 

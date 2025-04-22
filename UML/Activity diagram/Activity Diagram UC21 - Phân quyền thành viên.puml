@@ -1,0 +1,18 @@
+@startuml
+start
+:Admin truy cập chức năng\nquản lý nhóm;
+:Hệ thống hiển thị danh sách\nthành viên và vai trò;
+:Admin chọn thành viên\nvà gán vai trò mới;
+:Hệ thống kiểm tra thành viên;
+
+if (Thành viên hợp lệ?) then (yes)
+    :Hệ thống cập nhật vai trò\ntrong MongoDB;
+    :Hệ thống thông báo\n"Phân quyền thành công";
+    stop
+else (no)
+    :Hệ thống hiển thị lỗi\n"Chọn thành viên hợp lệ";
+    :Admin chọn lại thành viên;
+    ->Admin chọn thành viên\nvà gán vai trò mới
+endif
+
+@enduml
