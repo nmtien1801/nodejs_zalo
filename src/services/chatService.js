@@ -342,7 +342,7 @@ const updatePermission = async (groupId, newPermission) => {
 
 const getAllPermission = async () => {
   try {
-    const permission = await Permission.find()
+    const permission = await Permission.find();
 
     return {
       EM: "Permissions fetched successfully", // success message
@@ -359,6 +359,60 @@ const getAllPermission = async () => {
   }
 };
 
+const updateDeputy = async (members) => {
+  try {
+    
+    // Nếu members rỗng => chuyển tất cả deputy -> member (trừ leader)
+    if (!Array.isArray(members) || members.length === 0) {
+      const result = await Conversation.updateMany(
+        { role: { $ne: "leader" } },
+        { $set: { role: "member" } }
+      );
+
+      return {
+        EM: "Tất cả deputy đã được hạ xuống member", // success message
+        EC: 0,
+        DT: result,
+      };
+    }
+
+    // Nếu có danh sách members cụ thể => update từng cái thành deputy
+    const updateResults = await Promise.all(
+      members.map(async (member) => {
+        if (member.sender?._id && member.receiver?._id) {
+          return await Conversation.findOneAndUpdate(
+            {
+              "sender._id": member.sender._id,
+              "receiver._id": member.receiver._id,
+              role: { $ne: "leader" },
+            },
+            {
+              $set: { role: "deputy" },
+            },
+            { new: true }
+          );
+        }
+        return null;
+      })
+    );
+
+    const successfulUpdates = updateResults.filter((result) => result !== null);
+
+    return {
+      EM: "Đã cập nhật deputy thành công",
+      EC: 0,
+      DT: successfulUpdates,
+    };
+  } catch (error) {
+    console.error("Lỗi trong updateDeputy: ", error);
+    return {
+      EM: "Lỗi khi cập nhật deputy",
+      EC: -1,
+      DT: null,
+    };
+  }
+};
+
 module.exports = {
   getConversations,
   createConversationGroup,
@@ -367,4 +421,5 @@ module.exports = {
   getConversationsByMember,
   updatePermission,
   getAllPermission,
+  updateDeputy,
 };

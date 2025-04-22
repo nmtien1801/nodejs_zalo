@@ -24,6 +24,7 @@ const ChatRoutes = (app) => {
   app.get("/api/messages/:id/reactions", chatController.getReactionsByMessageId);
   app.post("/api/updatePermission", chatController.updatePermission);
   app.get("/api/getAllPermission", chatController.getAllPermission);
+  app.post("/api/updateDeputy", chatController.updateDeputy);
 
   return app.use("", router);
 };

@@ -149,7 +149,6 @@ const getMsg = async (req, res) => {
         }
         return msg;
       });
-    
     } else {
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
@@ -457,6 +456,29 @@ const getAllPermission = async (req, res) => {
   }
 };
 
+const updateDeputy = async (req, res) => {
+  try {
+    const { members } = req.body;
+
+    // Gọi service để cập nhật quyền
+    const result = await chatService.updateDeputy(members);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in updateDeputy controller: ", error);
+    return res.status(500).json({
+      EM: "Error updating deputy", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -469,5 +491,6 @@ module.exports = {
   handleReaction,
   getReactionsByMessageId,
   updatePermission,
-  getAllPermission
+  getAllPermission,
+  updateDeputy,
 };
