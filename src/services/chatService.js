@@ -413,6 +413,71 @@ const updateDeputy = async (members) => {
   }
 };
 
+const transLeader = async (groupId, newLeaderId) => {
+  try {
+    // Kiểm tra groupId và newLeaderId có hợp lệ không
+    if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(newLeaderId)) {
+      return {
+        EM: "Invalid groupId or newLeaderId", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Tìm conversation hiện tại của trưởng nhóm
+    const currentLeaderConversation = await Conversation.findOne({
+      "receiver._id": groupId,
+      role: "leader",
+    });
+
+    if (!currentLeaderConversation) {
+      return {
+        EM: "Current leader not found", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Hạ cấp trưởng nhóm hiện tại thành thành viên
+    currentLeaderConversation.role = "member";
+    await currentLeaderConversation.save();
+
+    // Tìm conversation của thành viên mới sẽ trở thành trưởng nhóm
+    const newLeaderConversation = await Conversation.findOne({
+      "receiver._id": groupId,
+      "sender._id": newLeaderId,
+    });
+
+    if (!newLeaderConversation) {
+      return {
+        EM: "New leader not found in the group", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      };
+    }
+
+    // Nâng cấp thành viên mới thành trưởng nhóm
+    newLeaderConversation.role = "leader";
+    await newLeaderConversation.save();
+
+    return {
+      EM: "Leader transferred successfully", // success message
+      EC: 0, // success code
+      DT: {
+        oldLeader: currentLeaderConversation,
+        newLeader: newLeaderConversation,
+      },
+    };
+  } catch (error) {
+    console.error("Error in transLeader service: ", error);
+    return {
+      EM: "Error transferring leader", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    };
+  }
+};
+
 module.exports = {
   getConversations,
   createConversationGroup,
@@ -422,4 +487,5 @@ module.exports = {
   updatePermission,
   getAllPermission,
   updateDeputy,
+  transLeader
 };

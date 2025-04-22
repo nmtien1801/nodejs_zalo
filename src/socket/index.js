@@ -297,6 +297,13 @@ const socketInit = (server) => {
       });
     });
 
+    // trans leader
+    socket.on("REQ_TRANS_LEADER", async (response) => {
+      io.to(users[response.newLeader.sender._id].socketId)
+          .to(users[response.oldLeader.sender._id].socketId)
+          .emit("RES_TRANS_LEADER", response);
+    });
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);

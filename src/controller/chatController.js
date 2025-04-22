@@ -479,6 +479,38 @@ const updateDeputy = async (req, res) => {
   }
 };
 
+const transLeader = async (req, res) => {
+  try {
+    const { groupId, newLeaderId } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!groupId || !newLeaderId) {
+      return res.status(400).json({
+        EM: "Missing required fields (groupId, newLeaderId)", // error message
+        EC: 1, // error code
+        DT: "", // no data
+      });
+    }
+
+    // Gọi service để chuyển quyền trưởng nhóm
+    const result = await chatService.transLeader(groupId, newLeaderId);
+
+    // Trả về kết quả từ service
+    return res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.error("Error in transLeader controller: ", error);
+    return res.status(500).json({
+      EM: "Error transferring leader", // error message
+      EC: -1, // error code
+      DT: "", // no data
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -493,4 +525,5 @@ module.exports = {
   updatePermission,
   getAllPermission,
   updateDeputy,
+  transLeader
 };
