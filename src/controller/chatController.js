@@ -417,8 +417,12 @@ const dissolveGroup = async (req, res) => {
       });
     }
 
-    const response = await chatService.dissolveGroup(groupId, userId);
-    return res.status(200).json(response);
+    const result = await chatService.dissolveGroup(groupId, userId);
+    return  res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
   } catch (error) {
     console.log("check dissolveGroup controller", error);
     return res.status(500).json({
