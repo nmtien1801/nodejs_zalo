@@ -336,6 +336,17 @@ const socketInit = (server) => {
       });
     });
 
+    // add member group
+    socket.on("REQ_ADD_GROUP", async (response) => {
+      const groupMembers = response.members || [];
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_ADD_GROUP", response);
+        }
+      });
+    });
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
