@@ -361,26 +361,26 @@ const getAllPermission = async () => {
 
 const updateDeputy = async (members) => {
   try {
-    
-    // Nếu members rỗng => chuyển tất cả deputy -> member (trừ leader)
-    if (!Array.isArray(members) || members.length === 0) {
-      const result = await Conversation.updateMany(
-        { role: { $ne: "leader" } },
-        { $set: { role: "member" } }
-      );
+    // Bước 1: Reset toàn bộ role về "member", trừ "leader"
+    await Conversation.updateMany(
+      { role: { $ne: "leader" } },
+      { $set: { role: "member" } }
+    );
 
+    // Nếu không có danh sách cụ thể => chỉ reset và kết thúc
+    if (!Array.isArray(members) || members.length === 0) {
       return {
-        EM: "Tất cả deputy đã được hạ xuống member", // success message
+        EM: "Đã reset tất cả deputy về member (trừ leader)",
         EC: 0,
-        DT: result,
+        DT: [],
       };
     }
 
-    // Nếu có danh sách members cụ thể => update từng cái thành deputy
+    // Bước 2: Update role thành "deputy" cho những member đủ điều kiện
     const updateResults = await Promise.all(
       members.map(async (member) => {
         if (member.sender?._id && member.receiver?._id) {
-          return await Conversation.findOneAndUpdate(
+          const updated = await Conversation.findOneAndUpdate(
             {
               "sender._id": member.sender._id,
               "receiver._id": member.receiver._id,
@@ -391,17 +391,16 @@ const updateDeputy = async (members) => {
             },
             { new: true }
           );
+          return updated ?? member; // nếu không update được thì trả về member gốc
         }
-        return null;
+        return member; // không đủ điều kiện, vẫn trả lại
       })
     );
 
-    const successfulUpdates = updateResults.filter((result) => result !== null);
-
     return {
-      EM: "Đã cập nhật deputy thành công",
+      EM: "Đã cập nhật deputy thành công sau khi reset",
       EC: 0,
-      DT: successfulUpdates,
+      DT: updateResults,
     };
   } catch (error) {
     console.error("Lỗi trong updateDeputy: ", error);
