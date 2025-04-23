@@ -260,7 +260,7 @@ const deleteMsgForMe = async (req, res) => {
     }
 
     // Tìm tin nhắn
-    const message = await Message.findById(id);
+    let message = await Message.findById(id);
 
     if (!message) {
       return res.status(404).json({
@@ -276,12 +276,13 @@ const deleteMsgForMe = async (req, res) => {
       message.isDeletedBySender = true;
     } else if (message.receiver._id.toString() === member._id) {
       // Người nhận xóa tin nhắn
-      if (member.type && member.memberDel) {
+      if (member.type === 2 && member.memberDel) {
         // xóa nhóm
         await Message.updateMany(
           { "receiver._id": member._id }, // điều kiện tìm messages
           { $addToSet: { memberDel: member.memberDel } } // cập nhật trường
         );
+        message = await Message.findById(id);
       } else {
         // xóa 1 - 1
         message.isDeletedByReceiver = true;
@@ -525,5 +526,5 @@ module.exports = {
   updatePermission,
   getAllPermission,
   updateDeputy,
-  transLeader
+  transLeader,
 };

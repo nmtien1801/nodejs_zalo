@@ -58,7 +58,6 @@ const socketInit = (server) => {
           .emit("RECEIVED_MSG", isSaved);
       } else if (msg.receiver.type === 2) {
         // chat nhóm
-
         const groupMembers = msg.receiver.members || [];
         groupMembers.forEach((memberId) => {
           const member = users[memberId];
@@ -299,6 +298,17 @@ const socketInit = (server) => {
       io.to(users[response.newLeader.sender._id].socketId)
         .to(users[response.oldLeader.sender._id].socketId)
         .emit("RES_TRANS_LEADER", response);
+    });
+
+    // create group
+    socket.on("REQ_CREATE_GROUP", async (response) => {
+      const groupMembers = response[0].members || [];
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_CREATE_GROUP", response);
+        }
+      });
     });
 
     socket.on("disconnect", () => {
