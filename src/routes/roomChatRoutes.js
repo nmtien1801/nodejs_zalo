@@ -14,6 +14,8 @@ const RoomChatRoutes = (app) => {
     router.all("*", checkUserJwt);
 
     app.get("/api/roomChat/:phone", roomChatController.getRoomChatByPhone);
+    app.get("/api/roomChat/:roomId/members", roomChatController.getRoomChatMembers); // Route mới
+    app.post("/api/roomChat/:roomId/members", roomChatController.addMembersToRoomChat); // Route mới
     app.get("/api/getAllMemberGroup/:groupId", roomChatController.getAllMemberGroup);
     app.post("/api/getMemberByPhone/:phone", roomChatController.getMemberByPhone);
 

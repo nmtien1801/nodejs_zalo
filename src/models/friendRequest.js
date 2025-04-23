@@ -25,6 +25,11 @@ const friendRequestSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        type: {
+            type: Number,
+            required: true,
+            default: 0, // 0: friend request, 1: group request
+        },
     },
     { timestamps: true }
 );

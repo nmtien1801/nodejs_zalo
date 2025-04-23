@@ -153,6 +153,64 @@ const cancelFriendRequest = async (req, res) => {
     }
 }
 
+const sendGroupJoinRequests = async (req, res) => {
+    try {
+        const roomId = req.params.roomId;
+        const { members } = req.body;
+        const data = await friendRequestService.sendGroupJoinRequests(roomId, members);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check sendGroupJoinRequests server', err);
+        return res.status(500).json({
+            EM: 'error sendGroupJoinRequests', //error message
+            EC: 2, //error code
+            DT: '', // data
+        });
+    }
+}
+
+const getGroupJoinRequests = async (req, res) => {
+    try {
+        const roomId = req.user._id;
+        const data = await friendRequestService.getGroupJoinRequests(roomId);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check getGroupJoinRequests server', err);
+        return res.status(500).json({
+            EM: 'error getGroupJoinRequests', //error message
+            EC: 2, //error code
+            DT: '', // data
+        });
+    }
+}
+
+const acceptGroupJoinRequest = async (req, res) => {
+    try {
+        const requestId = req.params.id;
+        const data = await friendRequestService.acceptGroupJoinRequest(requestId);
+        return res.status(200).json({
+            EM: data.EM,
+            EC: data.EC,
+            DT: data.DT,
+        });
+    } catch (err) {
+        console.log('check acceptGroupJoinRequest server', err);
+        return res.status(500).json({
+            EM: 'error acceptGroupJoinRequest', //error message
+            EC: 2, //error code
+            DT: '', // data
+        });
+    }
+}
+
 
 
 module.exports = {
@@ -162,4 +220,7 @@ module.exports = {
     rejectFriendRequest,
     getFriendRequestByFromUserAndToUser,
     cancelFriendRequest,
+    sendGroupJoinRequests,
+    getGroupJoinRequests,
+    acceptGroupJoinRequest,
 }
