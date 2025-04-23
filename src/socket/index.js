@@ -65,12 +65,8 @@ const socketInit = (server) => {
             io.to(member.socketId).emit("RECEIVED_MSG", isSaved);
           }
         });
-        console.log("groupMembers", groupMembers);
-
       }
     });
-
-
 
     socket.on("RECALL", (msg) => {
       let senderId = msg.sender._id;
@@ -235,11 +231,11 @@ const socketInit = (server) => {
 
     // thêm bạn
     socket.on("REQ_ADD_fRIEND", async (response) => {
-      //người dùng onl
+      // người dùng onl
       if (users[response.toUser].socketId) {
         io.to(users[response.fromUser].socketId)
           .to(users[response.toUser].socketId)
-          .emit("RES_ADD_FRIEND", response);
+          .emit("RES_ADD_FRIEND");
       }
       // người dùng off
       else {
@@ -255,7 +251,7 @@ const socketInit = (server) => {
     });
 
     // từ chối lời mời
-    socket.on("REQ_REJECT_FRIEND", async (response) => {
+    socket.on("REQ_REJECT_fRIEND", async (response) => {
       io.to(users[response.fromUser].socketId)
         .to(users[response.toUser].socketId)
         .emit("RES_REJECT_FRIEND");
@@ -263,10 +259,9 @@ const socketInit = (server) => {
 
     // chấp nhận lời mời
     socket.on("REQ_ACCEPT_FRIEND", async (response) => {
-
-
-
-      io.emit("RES_ACCEPT_FRIEND");
+      io.to(users[response.user1].socketId)
+        .to(users[response.user2].socketId)
+        .emit("RES_ACCEPT_FRIEND");
     });
 
     // xóa bạn
