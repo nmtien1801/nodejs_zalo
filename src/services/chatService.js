@@ -317,7 +317,7 @@ const dissolveGroup = async (groupId, userId) => {
 
     // Xóa tất cả các tin nhắn trong nhóm
     await Message.deleteMany({
-      conversationId: groupId
+      "receiver._id": groupId
     });
 
     // Xóa nhóm

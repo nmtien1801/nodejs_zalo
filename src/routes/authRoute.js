@@ -26,6 +26,9 @@ const AuthRoutes = (app) => {
 
   router.get("/user/getUserByPhone/:phone", authController.getUserByPhone);
 
+  // API lấy thông tin người dùng theo username
+
+
   router.post("/api/logout", authController.handleLogout);
 
   return app.use("", router);
