@@ -298,7 +298,7 @@ const dissolveGroup = async (groupId, userId) => {
     // Kiểm tra xem người dùng có phải là leader của nhóm không
     const conversation = await Conversation.findOne({
       "receiver._id": groupId,
-      "sender._id": userId,
+      "sender._id": userId,   
       role: "leader",
     });
 
