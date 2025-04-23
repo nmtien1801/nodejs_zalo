@@ -129,6 +129,7 @@ const getMsg = async (req, res) => {
       // Tin nhắn nhóm
       allMsg = await Message.find({
         "receiver._id": receiver,
+        memberDel: { $ne: sender },
       });
 
       allMsg = allMsg.map((msg) => {
@@ -276,13 +277,25 @@ const deleteMsgForMe = async (req, res) => {
       message.isDeletedBySender = true;
     } else if (message.receiver._id.toString() === member._id) {
       // Người nhận xóa tin nhắn
-      if (member.type === 2 && member.memberDel) {
-        // xóa nhóm
-        await Message.updateMany(
-          { "receiver._id": member._id }, // điều kiện tìm messages
-          { $addToSet: { memberDel: member.memberDel } } // cập nhật trường
+
+      console.log(message.receiver.members);
+      if (Array.isArray(message.receiver.members) && message.receiver.members.length > 2 && member.memberDel) {
+
+        if (!member.memberDel) {
+          return res.status(400).json({
+            EM: "Invalid member data", // error message
+            EC: 1, // error code
+            DT: "", // no data
+          });
+        }
+
+        await Message.updateOne(
+          { _id: id },
+          { $addToSet: { memberDel: member.memberDel } } 
         );
+
         message = await Message.findById(id);
+
       } else {
         // xóa 1 - 1
         message.isDeletedByReceiver = true;
