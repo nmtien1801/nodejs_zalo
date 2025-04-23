@@ -324,10 +324,22 @@ const addMembersToRoomChat = async (userId, roomId, members) => {
   }
 };
 
+// Tìm user theo username
+const findRoomChatByUsername = async (username) => {
+  try {
+    const user = await RoomChat.findOne({ username: username });
+    return user;
+  } catch (error) {
+    console.error("Error in findRoomChatByUsername: ", error);
+    return null;
+  }
+};
+
 module.exports = {
   getRoomChatByPhone,
   getAllMemberGroup,
   getMemberByPhone,
   getRoomChatMembers,
   addMembersToRoomChat,
+  findRoomChatByUsername,
 };

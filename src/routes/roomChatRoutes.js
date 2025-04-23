@@ -18,6 +18,7 @@ const RoomChatRoutes = (app) => {
     app.post("/api/roomChat/:roomId/members", roomChatController.addMembersToRoomChat); // Route mới
     app.get("/api/getAllMemberGroup/:groupId", roomChatController.getAllMemberGroup);
     app.post("/api/getMemberByPhone/:phone", roomChatController.getMemberByPhone);
+    app.get("/api/roomChat/:username", roomChatController.getRoomChatByUsername);
 
     return app.use("", router);
 };

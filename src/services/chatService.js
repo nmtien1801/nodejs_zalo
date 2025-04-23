@@ -415,7 +415,10 @@ const updateDeputy = async (members) => {
 const transLeader = async (groupId, newLeaderId) => {
   try {
     // Kiểm tra groupId và newLeaderId có hợp lệ không
-    if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(newLeaderId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(groupId) ||
+      !mongoose.Types.ObjectId.isValid(newLeaderId)
+    ) {
       return {
         EM: "Invalid groupId or newLeaderId", // error message
         EC: 1, // error code
@@ -477,62 +480,120 @@ const transLeader = async (groupId, newLeaderId) => {
   }
 };
 
-const removeMemberFromGroup = async (groupId, memberId) => {
-    try {
-        if (!mongoose.Types.ObjectId.isValid(groupId) || !mongoose.Types.ObjectId.isValid(memberId)) {
-            return {
-                EM: "Invalid Group ID or Member ID",
-                EC: 1,
-                DT: "",
-            };
-        }
-
-        const deletedConversations = await Conversation.deleteMany({
-            $or: [
-                { "sender._id": groupId, "receiver._id": memberId },
-                { "sender._id": memberId, "receiver._id": groupId }
-            ]
-        });
-
-        const group = await RoomChat.findById(groupId);
-
-        if (!group) {
-            return {
-                EM: "Group not found",
-                EC: 1,
-                DT: "",
-            };
-        }
-
-        const memberIndex = group.members.findIndex(
-            (member) => member.toString() === memberId
-        );
-        if (memberIndex === -1) {
-            return {
-                EM: "Member not found in group",
-                EC: 1,
-                DT: "",
-            };
-        }
-
-        group.members = group.members.filter(
-            (member) => member.toString() !== memberId
-        );
-        await group.save();
-
-        return {
-            EM: "Member removed successfully and related conversations deleted",
-            EC: 0,
-            DT: group,
-        };
-    } catch (error) {
-        console.error("Error in removeMemberFromGroup service:", error);
-        return {
-            EM: "Error removing member from group",
-            EC: 2,
-            DT: "",
-        };
+const dissolveGroup = async (groupId, userId) => {
+  try {
+    // Kiểm tra xem group có tồn tại không
+    const roomChat = await RoomChat.findById(groupId);
+    if (!roomChat) {
+      return {
+        EM: "Nhóm không tồn tại",
+        EC: 1,
+        DT: "",
+      };
     }
+
+    // Kiểm tra xem người dùng có phải là leader của nhóm không
+    const conversation = await Conversation.findOne({
+      "receiver._id": groupId,
+      "sender._id": userId,
+      role: "leader",
+    });
+
+    if (!conversation) {
+      return {
+        EM: "Bạn không có quyền giải tán nhóm này",
+        EC: 1,
+        DT: "",
+      };
+    }
+
+    // Xóa tất cả các conversation liên quan đến nhóm
+    await Conversation.deleteMany({
+      "receiver._id": groupId,
+    });
+
+    // Xóa tất cả các tin nhắn trong nhóm
+    await Message.deleteMany({
+      "receiver._id": groupId,
+    });
+
+    // Xóa nhóm
+    await RoomChat.findByIdAndDelete(groupId);
+
+    return {
+      EM: "Giải tán nhóm thành công",
+      EC: 0,
+      DT: "",
+    };
+  } catch (error) {
+    console.log("Check dissolveGroup service", error);
+    return {
+      EM: "Lỗi khi giải tán nhóm",
+      EC: 2,
+      DT: "",
+    };
+  }
+};
+
+const removeMemberFromGroup = async (groupId, memberId) => {
+  try {
+    if (
+      !mongoose.Types.ObjectId.isValid(groupId) ||
+      !mongoose.Types.ObjectId.isValid(memberId)
+    ) {
+      return {
+        EM: "Invalid Group ID or Member ID",
+        EC: 1,
+        DT: "",
+      };
+    }
+
+    const deletedConversations = await Conversation.deleteMany({
+      $or: [
+        { "sender._id": groupId, "receiver._id": memberId },
+        { "sender._id": memberId, "receiver._id": groupId },
+      ],
+    });
+
+    const group = await RoomChat.findById(groupId);
+
+    if (!group) {
+      return {
+        EM: "Group not found",
+        EC: 1,
+        DT: "",
+      };
+    }
+
+    const memberIndex = group.members.findIndex(
+      (member) => member.toString() === memberId
+    );
+    if (memberIndex === -1) {
+      return {
+        EM: "Member not found in group",
+        EC: 1,
+        DT: "",
+      };
+    }
+
+    group.members = group.members.filter(
+      (member) => member.toString() !== memberId
+    );
+    await group.save();
+
+    return {
+      EM: "Member removed successfully and related conversations deleted",
+      EC: 0,
+      DT: group,
+    };
+  } catch (error) {
+    console.error("Error in removeMemberFromGroup service:", error);
+    return {
+      EM: "Error removing member from group",
+      EC: 2,
+      DT: "",
+    };
+  }
 };
 
 module.exports = {
@@ -546,4 +607,5 @@ module.exports = {
   updateDeputy,
   transLeader,
   removeMemberFromGroup,
+  dissolveGroup,
 };

@@ -26,6 +26,9 @@ const ChatRoutes = (app) => {
   app.get("/api/getAllPermission", chatController.getAllPermission);
   app.post("/api/updateDeputy", chatController.updateDeputy);
   app.post("/api/transLeader", chatController.transLeader);
+  
+  // Giải tán nhóm (chỉ leader)
+  app.delete("/api/group/:groupId/dissolve", chatController.dissolveGroup);
 
   app.delete("/api/roomChat/:groupId/members/:memberId", chatController.removeMemberFromGroup);
   

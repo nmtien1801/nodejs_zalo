@@ -435,6 +435,34 @@ const updatePermission = async (req, res) => {
     });
   }
 };
+const dissolveGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const userId = req.user._id;
+
+    if (!groupId) {
+      return res.status(400).json({
+        EM: "Thiếu thông tin nhóm",
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    const result = await chatService.dissolveGroup(groupId, userId);
+    return  res.status(result.EC === 0 ? 200 : 400).json({
+      EM: result.EM, // success or error message từ service
+      EC: result.EC, // success or error code từ service
+      DT: result.DT, // dữ liệu trả về từ service
+    });
+  } catch (error) {
+    console.log("check dissolveGroup controller", error);
+    return res.status(500).json({
+      EM: "Lỗi server khi giải tán nhóm",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
 
 const getAllPermission = async (req, res) => {
   try {
@@ -512,38 +540,6 @@ const transLeader = async (req, res) => {
   }
 };
 
-// const removeMemberFromGroup = async (req, res) => {
-//     try {
-//         const groupId = req.params.groupId;
-//         const memberId = req.params.memberId;
-
-//         // Gọi service để xóa member và conversation
-//         const data = await chatService.removeMemberFromGroup(groupId, memberId);
-
-//         // Đảm bảo `data` có cấu trúc hợp lệ
-//         if (!data || typeof data.EC === "undefined") {
-//             return res.status(500).json({
-//                 EM: "Unexpected error occurred",
-//                 EC: -1,
-//                 DT: "",
-//             });
-//         }
-
-//         return res.status(data.EC === 0 ? 200 : 400).json({
-//             EM: data.EM,
-//             EC: data.EC,
-//             DT: data.DT,
-//         });
-//     } catch (err) {
-//         console.error("Error in removeMemberFromGroup controller:", err);
-//         return res.status(500).json({
-//             EM: "Error removing member from group",
-//             EC: -1,
-//             DT: "",
-//         });
-//     }
-// };
-
 const removeMemberFromGroup = async (req, res) => {
     try {
         const groupId = req.params.groupId;
@@ -590,4 +586,5 @@ module.exports = {
   updateDeputy,
   transLeader,
   removeMemberFromGroup,
+  dissolveGroup,
 };
