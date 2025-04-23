@@ -65,8 +65,12 @@ const socketInit = (server) => {
             io.to(member.socketId).emit("RECEIVED_MSG", isSaved);
           }
         });
+
+
       }
     });
+
+
 
     socket.on("RECALL", (msg) => {
       let senderId = msg.sender._id;
@@ -231,7 +235,7 @@ const socketInit = (server) => {
 
     // thêm bạn
     socket.on("REQ_ADD_fRIEND", async (response) => {
-      // người dùng onl
+      //người dùng onl
       if (users[response.toUser].socketId) {
         io.to(users[response.fromUser].socketId)
           .to(users[response.toUser].socketId)
@@ -244,24 +248,21 @@ const socketInit = (server) => {
     });
 
     // hủy lời mời
-    socket.on("REQ_CANCEL_fRIEND", async (response) => {
-      io.to(users[response.fromUser].socketId)
-        .to(users[response.toUser].socketId)
-        .emit("RES_CANCEL_FRIEND");
+    socket.on("REQ_CANCEL_FRIEND", async (response) => {
+      io.emit("RES_CANCEL_FRIEND");
     });
 
     // từ chối lời mời
     socket.on("REQ_REJECT_fRIEND", async (response) => {
-      io.to(users[response.fromUser].socketId)
-        .to(users[response.toUser].socketId)
-        .emit("RES_REJECT_FRIEND");
+      // io.to(users[response.fromUser].socketId)
+      //   .to(users[response.toUser].socketId)
+      //   .emit("RES_REJECT_FRIEND");
+      io.emit("RES_REJECT_FRIEND");
     });
 
     // chấp nhận lời mời
     socket.on("REQ_ACCEPT_FRIEND", async (response) => {
-      io.to(users[response.user1].socketId)
-        .to(users[response.user2].socketId)
-        .emit("RES_ACCEPT_FRIEND");
+      io.emit("RES_ACCEPT_FRIEND");
     });
 
     // xóa bạn
@@ -271,24 +272,29 @@ const socketInit = (server) => {
         .emit("RES_DELETE_FRIEND");
     });
 
+
+
     // manage permissions member group
     socket.on("REQ_MEMBER_PERMISSION", async (response) => {
       const groupMembers = response[0].members || [];
       groupMembers.forEach((memberId) => {
+
         const member = users[memberId];
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_MEMBER_PERMISSION", response);
+
         }
       });
     });
 
     // update deputy
     socket.on("REQ_UPDATE_DEPUTY", async (response) => {
-      const groupMembers = response[0]?.members || Object.keys(users);
+      const groupMembers = response[0]?.members || Object.keys(users)
       groupMembers.forEach((memberId) => {
-        const member = users[memberId];
+        const member = users[memberId]
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_UPDATE_DEPUTY", response);
+
         }
       });
     });
@@ -300,29 +306,8 @@ const socketInit = (server) => {
         .emit("RES_TRANS_LEADER", response);
     });
 
-    // create group
-    socket.on("REQ_CREATE_GROUP", async (response) => {
-      const groupMembers = response[0].members || [];
-      groupMembers.forEach((memberId) => {
-        const member = users[memberId];
-        if (member && member.socketId) {
-          io.to(member.socketId).emit("RES_CREATE_GROUP", response);
-        }
-      });
-    });
-
-    // remove member
-    socket.on("REQ_REMOVE_MEMBER", async (response) => {
-      const groupMembers = response || [];
-      groupMembers.forEach((memberId) => {
-        const member = users[memberId._id];
-        if (member && member.socketId) {
-          io.to(member.socketId).emit("RES_REMOVE_MEMBER", {
-            member: memberId, // Chỉ trả về người đó bị xóa
-            all: groupMembers, // Gửi luôn toàn bộ nếu cần hiển thị danh sách bị xóa
-          });
-        }
-      });
+    socket.on("REQ_ADD_GROUP", async (response) => {
+      io.emit("RES_ADD_GROUP");
     });
 
     socket.on("disconnect", () => {
