@@ -347,6 +347,42 @@ const socketInit = (server) => {
       });
     });
 
+    // call
+    socket.on("REQ_CALL", async (from, to) => {
+      const groupMembers = to.members || [];
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_CALL", from, to);
+        }
+      });
+    });
+
+    socket.on("REQ_END_CALL", (from, to) => {
+      const groupMembers = to.members || [];
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_END_CALL", from, to);
+        }
+      });
+    });
+
+    // update avatar
+    socket.on("REQ_UPDATE_AVATAR", async (response) => {
+      if (!response) {
+        io.emit("RES_UPDATE_AVATAR");
+      } else {
+        const groupMembers = response.members || [];
+        groupMembers.forEach((memberId) => {
+          const member = users[memberId];
+          if (member && member.socketId) {
+            io.to(member.socketId).emit("RES_UPDATE_AVATAR", response);
+          }
+        });
+      }
+    });
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
