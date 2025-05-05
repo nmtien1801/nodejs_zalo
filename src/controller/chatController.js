@@ -1,5 +1,6 @@
 const chatService = require("../services/chatService");
 const Message = require("../models/message");
+const Conversation = require("../models/conversation");
 
 const getConversations = async (req, res) => {
   try {
@@ -98,6 +99,19 @@ const saveMsg = async (data) => {
 
     const saveMsg = new Message(_data);
     await saveMsg.save();
+
+    // update conversation - message, time
+    const conversations = await Conversation.find({
+      'receiver._id': data.receiver._id,
+    });
+    
+    if (conversations && conversations.length > 0) {
+      for (let conversation of conversations) {
+        conversation.message = data.msg;
+        conversation.time = Date.now(); // Cập nhật thời gian với giá trị hiện tại
+        await conversation.save(); // Lưu lại từng cuộc trò chuyện
+      }
+    }
 
     return saveMsg;
   } catch (error) {
