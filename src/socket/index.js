@@ -313,14 +313,11 @@ const socketInit = (server) => {
 
     // remove member
     socket.on("REQ_REMOVE_MEMBER", async (response) => {
-      const groupMembers = response || [];
+      const groupMembers = response.all || [];
       groupMembers.forEach((memberId) => {
         const member = users[memberId._id];
         if (member && member.socketId) {
-          io.to(member.socketId).emit("RES_REMOVE_MEMBER", {
-            member: memberId, // Chỉ trả về người đó bị xóa
-            all: groupMembers, // Gửi luôn toàn bộ nếu cần hiển thị danh sách bị xóa
-          });
+          io.to(member.socketId).emit("RES_REMOVE_MEMBER", response);
         }
       });
     });
