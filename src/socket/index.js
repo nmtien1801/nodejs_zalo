@@ -233,9 +233,9 @@ const socketInit = (server) => {
     socket.on("REQ_ADD_fRIEND", async (response) => {
       let user1 = users[response.fromUser];
       let user2 = users[response.toUser];
-      if (user1) {
+      if (user1 && !user2) {
         io.to(user1.socketId).emit("RES_ADD_FRIEND");
-      } else if (user2) {
+      } else if (user2 && !user1) {
         io.to(user2.socketId).emit("RES_ADD_FRIEND");
       } else {
         io.to(user1.socketId).to(user2.socketId).emit("RES_ADD_FRIEND");
@@ -246,9 +246,9 @@ const socketInit = (server) => {
     socket.on("REQ_CANCEL_fRIEND", async (response) => {
       let user1 = users[response.fromUser];
       let user2 = users[response.toUser];
-      if (user1) {
+      if (user1 && !user2) {
         io.to(user1.socketId).emit("RES_CANCEL_FRIEND");
-      } else if (user2) {
+      } else if (user2 && !user1) {
         io.to(user2.socketId).emit("RES_CANCEL_FRIEND");
       } else {
         io.to(user1.socketId).to(user2.socketId).emit("RES_CANCEL_FRIEND");
@@ -257,16 +257,14 @@ const socketInit = (server) => {
 
     // từ chối lời mời
     socket.on("REQ_REJECT_fRIEND", async (response) => {
-       let user1 = users[response.fromUser];
+      let user1 = users[response.fromUser];
       let user2 = users[response.toUser];
-      if (user1) {
+      if (user1 && !user2) {
         io.to(user1.socketId).emit("RES_REJECT_FRIEND");
-      } else if (user2) {
+      } else if (user2 && !user1) {
         io.to(user2.socketId).emit("RES_REJECT_FRIEND");
       } else {
-        io.to(user1.socketId)
-          .to(user2.socketId)
-          .emit("RES_REJECT_FRIEND");
+        io.to(user1.socketId).to(user2.socketId).emit("RES_REJECT_FRIEND");
       }
     });
 
@@ -274,24 +272,26 @@ const socketInit = (server) => {
     socket.on("REQ_ACCEPT_FRIEND", async (response) => {
       let user1 = users[response.user1];
       let user2 = users[response.user2];
-      if (user1) {
-        io.to(users[response.user1].socketId).emit("RES_ACCEPT_FRIEND");
-      } else if (user2) {
-        io.to(users[response.user2].socketId).emit("RES_ACCEPT_FRIEND");
+      if (user1 && !user2) {
+        io.to(user1.socketId).emit("RES_ACCEPT_FRIEND");
+      } else if (user2 && !user1) {
+        console.log("dđcsccccccccccccccccccc", response);
+
+        io.to(user2.socketId).emit("RES_ACCEPT_FRIEND");
       } else {
-        io.to(users[response.user1].socketId)
-          .to(users[response.user2].socketId)
-          .emit("RES_ACCEPT_FRIEND");
+        io.to(user1.socketId).to(user2.socketId).emit("RES_ACCEPT_FRIEND");
       }
     });
 
     // xóa bạn
     socket.on("REQ_DELETE_FRIEND", async (response) => {
+      console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ", response);
+
       let user1 = users[response.user1];
       let user2 = users[response.user2];
-      if (user1) {
+      if (user1 && !user2) {
         io.to(users[response.user1].socketId).emit("RES_DELETE_FRIEND");
-      } else if (user2) {
+      } else if (user2 && !user1) {
         io.to(users[response.user2].socketId).emit("RES_DELETE_FRIEND");
       } else {
         io.to(users[response.user1].socketId)
