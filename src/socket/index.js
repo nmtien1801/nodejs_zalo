@@ -275,8 +275,6 @@ const socketInit = (server) => {
       if (user1 && !user2) {
         io.to(user1.socketId).emit("RES_ACCEPT_FRIEND");
       } else if (user2 && !user1) {
-        console.log("dđcsccccccccccccccccccc", response);
-
         io.to(user2.socketId).emit("RES_ACCEPT_FRIEND");
       } else {
         io.to(user1.socketId).to(user2.socketId).emit("RES_ACCEPT_FRIEND");
@@ -285,8 +283,6 @@ const socketInit = (server) => {
 
     // xóa bạn
     socket.on("REQ_DELETE_FRIEND", async (response) => {
-      console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ", response);
-
       let user1 = users[response.user1];
       let user2 = users[response.user2];
       if (user1 && !user2) {

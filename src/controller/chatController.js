@@ -102,9 +102,18 @@ const saveMsg = async (data) => {
 
     // update conversation - message, time
     const conversations = await Conversation.find({
-      'receiver._id': data.receiver._id,
+      $or: [
+        {
+          "sender._id": data.sender._id,
+          "receiver._id": data.receiver._id,
+        },
+        {
+          "sender._id": data.receiver._id,
+          "receiver._id": data.sender._id,
+        },
+      ],
     });
-    
+
     if (conversations && conversations.length > 0) {
       for (let conversation of conversations) {
         conversation.message = data.msg;
@@ -293,8 +302,11 @@ const deleteMsgForMe = async (req, res) => {
       // Người nhận xóa tin nhắn
 
       console.log(message.receiver.members);
-      if (Array.isArray(message.receiver.members) && message.receiver.members.length > 2 && member.memberDel) {
-
+      if (
+        Array.isArray(message.receiver.members) &&
+        message.receiver.members.length > 2 &&
+        member.memberDel
+      ) {
         if (!member.memberDel) {
           return res.status(400).json({
             EM: "Invalid member data", // error message
@@ -305,11 +317,10 @@ const deleteMsgForMe = async (req, res) => {
 
         await Message.updateOne(
           { _id: id },
-          { $addToSet: { memberDel: member.memberDel } } 
+          { $addToSet: { memberDel: member.memberDel } }
         );
 
         message = await Message.findById(id);
-
       } else {
         // xóa 1 - 1
         message.isDeletedByReceiver = true;
@@ -476,7 +487,7 @@ const dissolveGroup = async (req, res) => {
     }
 
     const result = await chatService.dissolveGroup(groupId, userId);
-    return  res.status(result.EC === 0 ? 200 : 400).json({
+    return res.status(result.EC === 0 ? 200 : 400).json({
       EM: result.EM, // success or error message từ service
       EC: result.EC, // success or error code từ service
       DT: result.DT, // dữ liệu trả về từ service
@@ -568,33 +579,33 @@ const transLeader = async (req, res) => {
 };
 
 const removeMemberFromGroup = async (req, res) => {
-    try {
-        const groupId = req.params.groupId;
-        const memberId = req.params.memberId;
+  try {
+    const groupId = req.params.groupId;
+    const memberId = req.params.memberId;
 
-        const data = await chatService.removeMemberFromGroup(groupId, memberId);
+    const data = await chatService.removeMemberFromGroup(groupId, memberId);
 
-        if (!data || typeof data.EC === "undefined") {
-            return res.status(500).json({
-                EM: "Unexpected error occurred",
-                EC: -1,
-                DT: "",
-            });
-        }
-
-        return res.status(data.EC === 0 ? 200 : 400).json({
-            EM: data.EM,
-            EC: data.EC,
-            DT: data.DT,
-        });
-    } catch (err) {
-        console.error("Error in removeMemberFromGroup controller:", err);
-        return res.status(500).json({
-            EM: "Error removing member from group",
-            EC: -1,
-            DT: "",
-        });
+    if (!data || typeof data.EC === "undefined") {
+      return res.status(500).json({
+        EM: "Unexpected error occurred",
+        EC: -1,
+        DT: "",
+      });
     }
+
+    return res.status(data.EC === 0 ? 200 : 400).json({
+      EM: data.EM,
+      EC: data.EC,
+      DT: data.DT,
+    });
+  } catch (err) {
+    console.error("Error in removeMemberFromGroup controller:", err);
+    return res.status(500).json({
+      EM: "Error removing member from group",
+      EC: -1,
+      DT: "",
+    });
+  }
 };
 
 module.exports = {
