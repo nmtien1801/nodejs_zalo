@@ -405,6 +405,13 @@ const socketInit = (server) => {
       }
     });
 
+    // call voice
+    socket.on("REQ_VOICE", ({ to, audio }) => {
+      console.log("Gửi âm thanh đến:", to);
+      // broadcast đến tất cả client khác (hoặc dùng `socket.to(to).emit` nếu có phòng)
+      socket.broadcast.emit("RES_VOICE", audio);
+    });
+
     socket.on("disconnect", () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
