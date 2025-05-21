@@ -163,8 +163,14 @@ const getMsg = async (req, res) => {
           return {
             _id: msg._id,
             msg: "Tin nhắn đã được thu hồi",
-            sender: msg.sender,
-            receiver: msg.receiver,
+            sender: {
+              ...msg.sender,
+              avatar: msg.sender.avatar || "https://i.imgur.com/l5HXBdTg.jpg"
+            },
+            receiver: {
+              ...msg.receiver,
+              avatar: msg.receiver.avatar || "https://i.imgur.com/l5HXBdTg.jpg"
+            },
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
@@ -173,6 +179,12 @@ const getMsg = async (req, res) => {
             createdAt: msg.createdAt,
             updatedAt: msg.updatedAt,
           };
+        }
+        if (!msg.sender.avatar) {
+          msg.sender.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
+        }
+        if (!msg.receiver.avatar) {
+          msg.receiver.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
         }
         return msg;
       });
@@ -202,8 +214,14 @@ const getMsg = async (req, res) => {
           return {
             _id: msg._id,
             msg: "Tin nhắn đã được thu hồi",
-            sender: msg.sender,
-            receiver: msg.receiver,
+            sender: {
+              ...msg.sender,
+              avatar: msg.sender.avatar || "https://i.imgur.com/l5HXBdTg.jpg" // Đảm bảo có avatar
+            },
+            receiver: {
+              ...msg.receiver,
+              avatar: msg.receiver.avatar || "https://i.imgur.com/l5HXBdTg.jpg" // Đảm bảo có avatar
+            },
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
@@ -212,6 +230,12 @@ const getMsg = async (req, res) => {
             createdAt: msg.createdAt,
             updatedAt: msg.updatedAt,
           };
+        }
+        if (!msg.sender.avatar) {
+          msg.sender.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
+        }
+        if (!msg.receiver.avatar) {
+          msg.receiver.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
         }
         return msg;
       });
