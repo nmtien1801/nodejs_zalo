@@ -69,6 +69,8 @@ const checkFriendShipExists = async (req, res) => {
 const getAllFriends = async (req, res) => {
     try {
         const userId = req.user._id;
+        console.log("userId", userId);
+
 
         if (!userId) {
             return res.status(400).json({
