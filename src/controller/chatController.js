@@ -77,12 +77,15 @@ const createConversationGroup = async (req, res) => {
 
 const saveMsg = async (data) => {
   try {
+
     const _data = {
       msg: data.msg,
       sender: {
         _id: data.sender._id,
         name: data.sender.username,
         phone: data.sender?.phone || null,
+        phone: data.sender?.phone || sender.phone || null,
+        avatar: data.sender.avatar || sender.avatar || null,
       },
       receiver: {
         _id: data.receiver._id,
