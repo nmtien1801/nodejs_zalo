@@ -6,6 +6,7 @@ const {
 require("dotenv").config();
 const RoomChat = require("../models/roomChat");
 const Session = require("../models/session");
+const Conversation = require("../models/conversation");
 
 const checkPhoneExists = async (userPhone) => {
   let phone = await RoomChat.findOne({ phone: userPhone });
@@ -51,7 +52,7 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
           roleID: user.roleID, // chức vụ
           gender: user.gender,
           dob: user.dob,
-          avatar: user.avatar
+          avatar: user.avatar,
         };
         let token = createJwt(payload);
         let tokenRefresh = createJwt_refreshToken(payload);
@@ -80,7 +81,7 @@ const handleLogin = async (rawData, ip_device, user_agent) => {
             roleID: user.roleID, // chức vụ
             gender: user.gender,
             dob: user.dob,
-            avatar: user.avatar
+            avatar: user.avatar,
           },
         };
       }
@@ -128,12 +129,39 @@ const handleRegister = async (rawData) => {
       gender: rawData.gender,
       dob: rawData.dob,
       avatar: rawData.avatar,
-      code: rawData.code
+      code: rawData.code,
     };
 
     // Tạo tài khoản mới trong MongoDB
     let user = new RoomChat(newUser);
     await user.save();
+
+    // ✅ Tạo cloud
+    const now = new Date();
+    const day = now.getDate().toString().padStart(2, "0");
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const year = now.getFullYear();
+    const formattedTime = `${day}/${month}/${year}`;
+
+    const newConversation = new Conversation({
+      sender: {
+        _id: user._id,
+      },
+      receiver: {
+        _id: user._id,
+        username: "Cloud của tôi",
+        phone: user.phone,
+        permission: [1, 2, 3, 4, 5], // hoặc bạn lấy từ user nếu có
+      },
+      message: "Chào mừng bạn đến với Zata", // bạn có thể thay đổi nội dung
+      time: Date.now(),
+      startTime: Date.now(),
+      avatar: user.avatar,
+      members: [user._id, user._id],
+      type: 3, // cloud
+      role: "leader",
+    });
+    await newConversation.save();
 
     return {
       EM: "register success",
@@ -315,8 +343,6 @@ const findUserByPhone = async (phone) => {
   }
 };
 
-
-
 module.exports = {
   handleLogin,
   hashPassWord,
@@ -326,5 +352,5 @@ module.exports = {
   updateCode,
   changePassword,
   findUserByPhone,
-  updateAvatar
+  updateAvatar,
 };
