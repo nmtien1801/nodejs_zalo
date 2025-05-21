@@ -335,6 +335,29 @@ const findRoomChatByUsername = async (username) => {
   }
 };
 
+const getPermissionCurrent = async (groupId) => {
+  try {
+    // Tìm RoomChat theo roomId
+    const permission = await Conversation.findOne({
+      'receiver._id': groupId
+    });
+      console.log("ssssssssssssssssssss ", groupId);
+
+    return {
+      EM: "ok! getPermissionCurrent",
+      EC: 0,
+      DT: permission,
+    };
+  } catch (error) {
+    console.log("check getPermissionCurrent service", error);
+    return {
+      EM: "error getPermissionCurrent service",
+      EC: 2,
+      DT: "",
+    };
+  }
+};
+
 module.exports = {
   getRoomChatByPhone,
   getAllMemberGroup,
@@ -342,4 +365,5 @@ module.exports = {
   getRoomChatMembers,
   addMembersToRoomChat,
   findRoomChatByUsername,
+  getPermissionCurrent,
 };

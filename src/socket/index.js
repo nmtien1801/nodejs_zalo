@@ -65,12 +65,8 @@ const socketInit = (server) => {
             io.to(member.socketId).emit("RECEIVED_MSG", isSaved);
           }
         });
-
-
       }
     });
-
-
 
     socket.on("RECALL", (msg) => {
       let senderId = msg.sender._id;
@@ -285,6 +281,17 @@ const socketInit = (server) => {
       }
     });
 
+    // chấp nhận lời mời nhóm
+    socket.on("REQ_ACCEPT_GROUP", async (response) => {
+      const groupMembers = response.members || [];
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_ACCEPT_GROUP", response);
+        }
+      });
+    });
+
     // xóa bạn
     socket.on("REQ_DELETE_FRIEND", async (response) => {
       let user1 = users[response.user1];
@@ -300,29 +307,24 @@ const socketInit = (server) => {
       }
     });
 
-
-
     // manage permissions member group
     socket.on("REQ_MEMBER_PERMISSION", async (response) => {
       const groupMembers = response[0].members || [];
       groupMembers.forEach((memberId) => {
-
         const member = users[memberId];
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_MEMBER_PERMISSION", response);
-
         }
       });
     });
 
     // update deputy
     socket.on("REQ_UPDATE_DEPUTY", async (response) => {
-      const groupMembers = response[0]?.members || Object.keys(users)
+      const groupMembers = response[0]?.members || Object.keys(users);
       groupMembers.forEach((memberId) => {
-        const member = users[memberId]
+        const member = users[memberId];
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_UPDATE_DEPUTY", response);
-
         }
       });
     });
@@ -372,6 +374,7 @@ const socketInit = (server) => {
       const groupMembers = response.members || [];
       groupMembers.forEach((memberId) => {
         const member = users[memberId];
+        
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_ADD_GROUP", response);
         }

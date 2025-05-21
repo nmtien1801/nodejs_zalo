@@ -19,6 +19,7 @@ const RoomChatRoutes = (app) => {
     app.get("/api/getAllMemberGroup/:groupId", roomChatController.getAllMemberGroup);
     app.post("/api/getMemberByPhone/:phone", roomChatController.getMemberByPhone);
     app.get("/api/roomChat/:username", roomChatController.getRoomChatByUsername);
+    app.get("/api/getPermissionCurrent/:groupId", roomChatController.getPermissionCurrent);
 
     return app.use("", router);
 };
