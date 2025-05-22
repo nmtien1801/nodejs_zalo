@@ -331,6 +331,9 @@ const socketInit = (server) => {
 
     // trans leader
     socket.on("REQ_TRANS_LEADER", async (response) => {
+      console.log('newLeader ',users[response.newLeader.sender._id]);
+      console.log('oldLeader ',users[response.oldLeader.sender._id]);
+      
       io.to(users[response.newLeader.sender._id].socketId)
         .to(users[response.oldLeader.sender._id].socketId)
         .emit("RES_TRANS_LEADER", response);
