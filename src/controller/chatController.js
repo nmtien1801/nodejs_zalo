@@ -1,6 +1,8 @@
 const chatService = require("../services/chatService");
 const Message = require("../models/message");
 const Conversation = require("../models/conversation");
+const { OpenAI } = require("openai");
+require("dotenv").config();
 
 const getConversations = async (req, res) => {
   try {
@@ -608,6 +610,38 @@ const removeMemberFromGroup = async (req, res) => {
   }
 };
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const chatGPTResponse = async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Missing message" });
+    }
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Bạn là một người trợ lý ảo thân thiện, vui vẻ, nói chuyện tự nhiên như một người bạn trên Facebook Messenger. Hãy trả lời ngắn gọn, dễ hiểu, đôi khi thêm biểu cảm hoặc emoji nếu phù hợp.",
+        },
+        { role: "user", content: message },
+      ],
+    });
+
+    const reply = response.choices[0].message.content;
+    res.json({ reply });
+  } catch (err) {
+    console.error("Error in chatGPTResponse controller:", err);
+    return res.status(500).json({
+      EM: "Error chatGPTResponse",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -625,4 +659,5 @@ module.exports = {
   transLeader,
   removeMemberFromGroup,
   dissolveGroup,
+  chatGPTResponse,
 };
