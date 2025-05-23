@@ -77,21 +77,18 @@ const createConversationGroup = async (req, res) => {
 
 const saveMsg = async (data) => {
   try {
-
     const _data = {
       msg: data.msg,
       sender: {
         _id: data.sender._id,
         name: data.sender.username,
         phone: data.sender?.phone || null,
-        phone: data.sender?.phone || sender.phone || null,
-        avatar: data.sender.avatar || sender.avatar || null,
       },
       receiver: {
         _id: data.receiver._id,
         name: data.receiver.username,
         phone: data.receiver?.phone || null,
-        members: data.receiver.members,
+        members: data.receiver.members
       },
       isRead: false,
       isDeleted: false,
@@ -150,6 +147,11 @@ const getMsg = async (req, res) => {
       });
     }
 
+    // Lấy thông tin receiver để có avatar
+    let senderInfo = await require('../models/roomChat').findById(receiver);
+
+    const senderAvatar = senderInfo?.avatar || "https://i.imgur.com/l5HXBdTg.jpg";
+
     let allMsg = [];
     if (+type === 2) {
       // Tin nhắn nhóm
@@ -159,18 +161,16 @@ const getMsg = async (req, res) => {
       });
 
       allMsg = allMsg.map((msg) => {
+
+        const updatedMsg = msg.toObject();
+        updatedMsg.sender.avatar = senderAvatar;
+
         if (msg.isDeleted) {
           return {
             _id: msg._id,
             msg: "Tin nhắn đã được thu hồi",
-            sender: {
-              ...msg.sender,
-              avatar: msg.sender.avatar || "https://i.imgur.com/l5HXBdTg.jpg"
-            },
-            receiver: {
-              ...msg.receiver,
-              avatar: msg.receiver.avatar || "https://i.imgur.com/l5HXBdTg.jpg"
-            },
+            sender: updatedMsg.sender,
+            receiver: msg.receiver,
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
@@ -180,15 +180,10 @@ const getMsg = async (req, res) => {
             updatedAt: msg.updatedAt,
           };
         }
-        if (!msg.sender.avatar) {
-          msg.sender.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
-        }
-        if (!msg.receiver.avatar) {
-          msg.receiver.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
-        }
-        return msg;
+        return updatedMsg;
       });
     } else {
+
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
         $or: [
@@ -210,18 +205,17 @@ const getMsg = async (req, res) => {
       });
 
       allMsg = allMsg.map((msg) => {
+
+        // Thêm avatar vào sender
+        const updatedMsg = msg.toObject();
+        updatedMsg.sender.avatar = senderAvatar;
+
         if (msg.isDeleted) {
           return {
             _id: msg._id,
             msg: "Tin nhắn đã được thu hồi",
-            sender: {
-              ...msg.sender,
-              avatar: msg.sender.avatar || "https://i.imgur.com/l5HXBdTg.jpg" // Đảm bảo có avatar
-            },
-            receiver: {
-              ...msg.receiver,
-              avatar: msg.receiver.avatar || "https://i.imgur.com/l5HXBdTg.jpg" // Đảm bảo có avatar
-            },
+            sender: updatedMsg.sender,
+            receiver: msg.receiver,
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
@@ -231,13 +225,7 @@ const getMsg = async (req, res) => {
             updatedAt: msg.updatedAt,
           };
         }
-        if (!msg.sender.avatar) {
-          msg.sender.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
-        }
-        if (!msg.receiver.avatar) {
-          msg.receiver.avatar = "https://i.imgur.com/l5HXBdTg.jpg";
-        }
-        return msg;
+        return updatedMsg;
       });
     }
 

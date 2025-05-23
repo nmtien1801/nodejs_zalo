@@ -1,5 +1,6 @@
 const socket = require("socket.io");
 const { saveMsg } = require("../controller/chatController");
+const chatService = require("../services/chatService");
 
 const onlineUsers = [];
 
@@ -449,6 +450,59 @@ const socketInit = (server) => {
         }
       });
     });
+
+    socket.on("REACTION", async (data) => {
+      console.log("Received reaction event:", data);
+      
+      // Lấy thông tin cần thiết
+      const { messageId, userId, username, emoji, receiver } = data;
+      
+      // Lưu reaction vào database
+      const result = await chatService.handleReaction(messageId, userId, emoji);
+      
+      if (result.EC === 0) {
+        // Thêm result vào data để gửi dữ liệu nhất quán về clients
+        data.success = true;
+        
+        // Broadcast tới tất cả người dùng trong cuộc trò chuyện
+        if (receiver.type === 1) { // Chat cá nhân
+          // Tìm socketId của người nhận
+          const receiverUser = users[receiver._id];
+          const senderUser = users[userId];
+          
+          // Gửi đến người gửi (để cập nhật trên các thiết bị khác)
+          if (senderUser) {
+            io.to(senderUser.socketId).emit("RECEIVED_REACTION", data);
+          }
+          
+          // Gửi đến người nhận
+          if (receiverUser) {
+            io.to(receiverUser.socketId).emit("RECEIVED_REACTION", data);
+          }
+        } else if (receiver.type === 2) { // Chat nhóm
+          // Gửi đến tất cả thành viên trong nhóm
+          if (receiver.members && receiver.members.length > 0) {
+            receiver.members.forEach(memberId => {
+              const memberUser = users[memberId];
+              if (memberUser) {
+                io.to(memberUser.socketId).emit("RECEIVED_REACTION", data);
+              }
+            });
+          }
+        }
+      } else {
+        console.error("Failed to save reaction:", result.EM);
+        // Thông báo lỗi chỉ cho người gửi
+        const senderUser = users[userId];
+        if (senderUser) {
+          io.to(senderUser.socketId).emit("REACTION_ERROR", {
+            messageId,
+            error: result.EM
+          });
+        }
+      }
+    });
+
   });
 };
 
