@@ -11,6 +11,7 @@ const RoomChatRoutes = require("./routes/roomChatRoutes");
 const FriendRequestRoutes = require("./routes/friendRequestRoutes");
 const ProfileRoutes = require("./routes/profileRoutes");
 const FriendShipRoutes = require("./routes/friendShipRoute");
+const { monitorRedisConnection } = require("./utils/redisMonitor");
 
 const app = express();
 const server = http.createServer(app);
@@ -48,4 +49,8 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`>>>backend is running on the port ${PORT}`);
+
+  //Giám sát trạng thái kết nối Redis
+  monitorRedisConnection();
+  console.log('Redis Cloud monitoring started');
 });

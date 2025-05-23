@@ -1,6 +1,8 @@
 const socket = require("socket.io");
 const { saveMsg } = require("../controller/chatController");
 const chatService = require("../services/chatService");
+const { setTypingStatus, removeTypingStatus, getTypingUsers } = require("../utils/typingUtils");
+const { keysAsync } = require("../config/redisConfig");
 
 const onlineUsers = [];
 
@@ -51,6 +53,11 @@ const socketInit = (server) => {
     socket.on("SEND_MSG", async (msg) => {
       console.log("MSG FROM FRONTEND", msg);
       const isSaved = await saveMsg(msg);
+
+      // Dừng typing sau khi tin nhắn đc gửi
+      const userId = msg.sender._id;
+      const conversationId = msg.receiver._id;
+      await removeTypingStatus(userId, conversationId);
 
       if (msg.receiver.type === 1) {
         // chat đơn
@@ -421,12 +428,27 @@ const socketInit = (server) => {
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       removeUser(socket.id);
       io.emit("USER_ADDED", onlineUsers);
       //
-      Object.keys(users).forEach((userId) => {
+      Object.keys(users).forEach(async (userId) => {
         if (users[userId].socketId === socket.id) {
+
+        // Xử lý Redis Cloud - tìm và xóa các key typing của user này
+        try {
+          const keys = await keysAsync(`typing:*:${userId}`);
+          
+          if (keys && keys.length > 0) {
+            for (const key of keys) {
+              await delAsync(key);
+              console.log(`Redis Cloud - Removed typing key: ${key}`);
+            }
+          }
+        } catch (redisError) {
+          console.error("Redis Cloud Error during disconnect:", redisError);
+        }
+
           users[userId].isOnline = false; // Đánh dấu offline thay vì xóa
           users[userId].lastDisconnect = Date.now(); // Lưu thời điểm ngắt kết nối
 
@@ -500,6 +522,97 @@ const socketInit = (server) => {
             error: result.EM
           });
         }
+      }
+    });
+
+    //Xử lý typing
+    socket.on("TYPING", async (data) => {
+      try {
+        const { userId, username, receiver } = data;
+        const conversationId = receiver._id;
+
+        // Lưu trạng thái typing vào Redis Cloud với TTL
+        const saved = await setTypingStatus(userId, conversationId, username);
+        if (!saved) {
+          console.error("Failed to save typing status to Redis Cloud");
+        }
+
+        // Broadcast trạng thái typing
+        if (receiver.type === 1) { // Chat cá nhân
+          const receiverUser = users[receiver._id];
+          if (receiverUser && receiverUser.isOnline) {
+            io.to(receiverUser.socketId).emit("USER_TYPING", { 
+              userId, 
+              username, 
+              conversationId 
+            });
+          }
+        } else if (receiver.type === 2) { // Chat nhóm
+          if (receiver.members && receiver.members.length > 0) {
+            receiver.members
+              .filter(memberId => memberId !== userId)
+              .forEach(memberId => {
+                const memberUser = users[memberId];
+                if (memberUser && memberUser.isOnline) {
+                  io.to(memberUser.socketId).emit("USER_TYPING", { 
+                    userId, 
+                    username, 
+                    conversationId 
+                  });
+                }
+              });
+          }
+        }
+      } catch (error) {
+        console.error("Error processing typing event:", error);
+      }
+    });
+
+    //Dừng typing
+    socket.on("STOP_TYPING", async (data) => {
+      try {
+        const { userId, receiver } = data;
+
+        // Kiểm tra cả userId và receiver trước khi xử lý
+        if (!userId || !receiver || !receiver._id) {
+          console.warn("Invalid STOP_TYPING data received:", data);
+          return; 
+        }
+
+        const conversationId = receiver._id;
+
+        // Xóa trạng thái typing từ Redis Cloud
+        const removed = await removeTypingStatus(userId, conversationId);
+        if (!removed) {
+          console.error("Failed to remove typing status from Redis Cloud");
+        }
+
+        // Broadcast sự kiện dừng typing
+        if (receiver.type === 1) { // Chat cá nhân
+          const receiverUser = users[receiver._id];
+          if (receiverUser && receiverUser.isOnline) {
+            io.to(receiverUser.socketId).emit("USER_STOP_TYPING", { 
+              userId, 
+              conversationId 
+            });
+          }
+        } else if (receiver.type === 2) { // Chat nhóm
+          if (receiver.members && receiver.members.length > 0) {
+            receiver.members
+              .filter(memberId => memberId !== userId)
+              .forEach(memberId => {
+                const memberUser = users[memberId];
+                if (memberUser && memberUser.isOnline) {
+                  io.to(memberUser.socketId).emit("USER_STOP_TYPING", { 
+                    userId, 
+                    conversationId 
+                  });
+                }
+              });
+          }
+        }
+      } catch (error) {
+        console.error("Error processing stop typing event:", error);
       }
     });
 
