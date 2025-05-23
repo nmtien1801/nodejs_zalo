@@ -135,8 +135,6 @@ const addMembersToRoomChat = async (req, res) => {
       members
     );
 
-    console.log("check addMembersToRoomChat server", data);
-
     return res.status(200).json({
       EM: data.EM,
       EC: data.EC,
@@ -216,6 +214,44 @@ const getRoomChatByUsername = async (req, res) => {
     });
   }
 };
+
+const getPermissionCurrent = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    if (!groupId) {
+      return res.status(400).json({
+        EM: "Username is required",
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    const user = await roomChatService.getPermissionCurrent(groupId);
+
+    if (!user) {
+      return res.status(404).json({
+        EM: "User not found",
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    return res.status(200).json({
+      EM: "User found",
+      EC: 0,
+      DT: user.DT,
+    });
+  } catch (error) {
+    console.error("Error in getUserAccountByUsername: ", error);
+    return res.status(500).json({
+      EM: "Error from server",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   getRoomChatByPhone,
   getAllMemberGroup,
@@ -224,4 +260,5 @@ module.exports = {
   addMembersToRoomChat,
   acceptGroupJoinRequest,
   getRoomChatByUsername,
+  getPermissionCurrent
 };

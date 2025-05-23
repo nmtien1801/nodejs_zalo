@@ -137,10 +137,21 @@ const getAllFriends = async (userId) => {
 
     // Lấy danh sách bạn bè (loại bỏ userId khỏi kết quả)
     const friends = friendships.map((friendship) => {
-      return friendship.user1._id.toString() === userId.toString()
-        ? friendship.user2
-        : friendship.user1;
+      const friend =
+        friendship.user1._id.toString() === userId.toString()
+          ? friendship.user2
+          : friendship.user1;
+
+      return {
+        _id: friend._id,
+        username: friend.username,
+        avatar: friend.avatar,
+        phone: friend.phone,
+        since: friendship.since,
+      };
     });
+
+    console.log("friends", friends);
 
     return {
       EM: "ok! getAllFriends",

@@ -281,6 +281,17 @@ const socketInit = (server) => {
       }
     });
 
+    // chấp nhận lời mời nhóm
+    socket.on("REQ_ACCEPT_GROUP", async (response) => {
+      const groupMembers = response.members || [];
+      groupMembers.forEach((memberId) => {
+        const member = users[memberId];
+        if (member && member.socketId) {
+          io.to(member.socketId).emit("RES_ACCEPT_GROUP", response);
+        }
+      });
+    });
+
     // xóa bạn
     socket.on("REQ_DELETE_FRIEND", async (response) => {
       let user1 = users[response.user1];
@@ -320,6 +331,9 @@ const socketInit = (server) => {
 
     // trans leader
     socket.on("REQ_TRANS_LEADER", async (response) => {
+      console.log('newLeader ',users[response.newLeader.sender._id]);
+      console.log('oldLeader ',users[response.oldLeader.sender._id]);
+      
       io.to(users[response.newLeader.sender._id].socketId)
         .to(users[response.oldLeader.sender._id].socketId)
         .emit("RES_TRANS_LEADER", response);
@@ -363,6 +377,7 @@ const socketInit = (server) => {
       const groupMembers = response.members || [];
       groupMembers.forEach((memberId) => {
         const member = users[memberId];
+        
         if (member && member.socketId) {
           io.to(member.socketId).emit("RES_ADD_GROUP", response);
         }
