@@ -90,7 +90,7 @@ const saveMsg = async (data) => {
         _id: data.receiver._id,
         name: data.receiver.username,
         phone: data.receiver?.phone || null,
-        members: data.receiver.members,
+        members: data.receiver.members
       },
       isRead: false,
       isDeleted: false,
@@ -149,6 +149,11 @@ const getMsg = async (req, res) => {
       });
     }
 
+    // Lấy thông tin receiver để có avatar
+    let senderInfo = await require('../models/roomChat').findById(receiver);
+
+    const senderAvatar = senderInfo?.avatar || "https://i.imgur.com/l5HXBdTg.jpg";
+
     let allMsg = [];
     if (+type === 2) {
       // Tin nhắn nhóm
@@ -158,11 +163,15 @@ const getMsg = async (req, res) => {
       });
 
       allMsg = allMsg.map((msg) => {
+
+        const updatedMsg = msg.toObject();
+        updatedMsg.sender.avatar = senderAvatar;
+
         if (msg.isDeleted) {
           return {
             _id: msg._id,
             msg: "Tin nhắn đã được thu hồi",
-            sender: msg.sender,
+            sender: updatedMsg.sender,
             receiver: msg.receiver,
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
@@ -173,9 +182,10 @@ const getMsg = async (req, res) => {
             updatedAt: msg.updatedAt,
           };
         }
-        return msg;
+        return updatedMsg;
       });
     } else {
+
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
         $or: [
@@ -197,11 +207,16 @@ const getMsg = async (req, res) => {
       });
 
       allMsg = allMsg.map((msg) => {
+
+        // Thêm avatar vào sender
+        const updatedMsg = msg.toObject();
+        updatedMsg.sender.avatar = senderAvatar;
+
         if (msg.isDeleted) {
           return {
             _id: msg._id,
             msg: "Tin nhắn đã được thu hồi",
-            sender: msg.sender,
+            sender: updatedMsg.sender,
             receiver: msg.receiver,
             isRead: msg.isRead,
             isDeleted: msg.isDeleted,
@@ -212,7 +227,7 @@ const getMsg = async (req, res) => {
             updatedAt: msg.updatedAt,
           };
         }
-        return msg;
+        return updatedMsg;
       });
     }
 
