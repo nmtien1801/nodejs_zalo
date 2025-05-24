@@ -254,6 +254,7 @@ const getFriendRequests = async (userId) => {
             toUser: request.toUser,
             status: request.status,
             content: request.content,
+            type: request.type,
             sent_at: new Intl.DateTimeFormat('vi-VN', {
                 day: '2-digit',
                 month: '2-digit',
