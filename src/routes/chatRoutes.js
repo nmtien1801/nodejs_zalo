@@ -51,6 +51,9 @@ const ChatRoutes = (app) => {
   router.post("/api/mark-read/:messageId", chatController.markMessageAsRead);
   router.post("/api/mark-all-read/:conversationId", chatController.markAllMessagesAsRead);
 
+  // Lấy tin nhắn cũ hơn
+  app.get("/api/messages/:sender/:receiver/:type/older", chatController.getOlderMessages);
+
   return app.use("", router);
 };
 

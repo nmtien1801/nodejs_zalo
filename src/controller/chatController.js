@@ -142,6 +142,11 @@ const getMsg = async (req, res) => {
     let receiver = req.params.receiver;
     let type = req.params.type;
 
+    // Thêm tham số phân trang
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    let skip = (page - 1) * limit;
+
     if (!sender || !receiver) {
       return res.status(403).json({
         EM: "User id required.", //error message
@@ -156,12 +161,27 @@ const getMsg = async (req, res) => {
     const senderAvatar = senderInfo?.avatar || "https://i.imgur.com/l5HXBdTg.jpg";
 
     let allMsg = [];
+    let totalMessages = 0;
+
     if (+type === 2) {
+
+      // Đếm tổng số tin nhắn nhóm
+      totalMessages = await Message.countDocuments({
+        "receiver._id": receiver,
+        memberDel: { $ne: sender },
+      });
+
       // Tin nhắn nhóm
       allMsg = await Message.find({
         "receiver._id": receiver,
         memberDel: { $ne: sender },
-      });
+      })
+      .sort({ createdAt: -1 })  // Sắp xếp từ mới đến cũ
+      .skip(skip)
+      .limit(limit);
+
+      // Đảo ngược để tin nhắn cũ hiển thị trước
+      allMsg = allMsg.reverse();
 
       allMsg = allMsg.map((msg) => {
 
@@ -188,6 +208,26 @@ const getMsg = async (req, res) => {
       });
     } else {
 
+      // Đếm tổng số tin nhắn 1-1
+      totalMessages = await Message.countDocuments({
+        $or: [
+          {
+            $and: [
+              { "sender._id": sender },
+              { "receiver._id": receiver },
+              { isDeletedBySender: false },
+            ],
+          },
+          {
+            $and: [
+              { "sender._id": receiver },
+              { "receiver._id": sender },
+              { isDeletedByReceiver: false },
+            ],
+          },
+        ],
+      });
+
       // Tin nhắn giữa hai người
       allMsg = await Message.find({
         $or: [
@@ -206,7 +246,13 @@ const getMsg = async (req, res) => {
             ],
           },
         ],
-      });
+      })
+      .sort({ createdAt: -1 })  // Sắp xếp từ mới đến cũ
+      .skip(skip)
+      .limit(limit);
+
+      // Đảo ngược để tin nhắn cũ hiển thị trước
+      allMsg = allMsg.reverse();
 
       allMsg = allMsg.map((msg) => {
 
@@ -234,10 +280,19 @@ const getMsg = async (req, res) => {
       });
     }
 
+    const pagination = {
+      page,
+      limit,
+      totalMessages,
+      totalPages: Math.ceil(totalMessages / limit),
+      hasMore: skip + limit < totalMessages
+    };
+
     return res.status(200).json({
       EM: "oke allMSg getMsg", //error message
       EC: 0, //error code
       DT: allMsg, // data
+      pagination // thông tin phân trang
     });
   } catch (error) {
     console.log("check getMsg server", error);
@@ -769,6 +824,118 @@ const markAllMessagesAsRead = async (req, res) => {
   }
 };
 
+// Xuất tin nhắn cũ hơn
+const getOlderMessages = async (req, res) => {
+  try {
+    let sender = req.params.sender;
+    let receiver = req.params.receiver;
+    let type = req.params.type;
+    let lastMessageId = req.query.lastMessageId;
+    let limit = parseInt(req.query.limit) || 20;
+
+    if (!sender || !receiver || !lastMessageId) {
+      return res.status(400).json({
+        EM: "Missing required parameters", 
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    // Lấy thông tin thời gian của tin nhắn cuối cùng
+    const lastMessage = await Message.findById(lastMessageId);
+    if (!lastMessage) {
+      return res.status(404).json({
+        EM: "Last message not found", 
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    // Lấy thông tin receiver để có avatar
+    let senderInfo = await require('../models/roomChat').findById(receiver);
+    const senderAvatar = senderInfo?.avatar || "https://i.imgur.com/l5HXBdTg.jpg";
+
+    let query = {};
+    if (+type === 2) {
+      // Tin nhắn nhóm
+      query = {
+        "receiver._id": receiver,
+        memberDel: { $ne: sender },
+        createdAt: { $lt: lastMessage.createdAt }
+      };
+    } else {
+      // Tin nhắn giữa hai người
+      query = {
+        $or: [
+          {
+            $and: [
+              { "sender._id": sender },
+              { "receiver._id": receiver },
+              { isDeletedBySender: false },
+              { createdAt: { $lt: lastMessage.createdAt } }
+            ],
+          },
+          {
+            $and: [
+              { "sender._id": receiver },
+              { "receiver._id": sender },
+              { isDeletedByReceiver: false },
+              { createdAt: { $lt: lastMessage.createdAt } }
+            ],
+          },
+        ],
+      };
+    }
+
+    // Lấy tin nhắn cũ hơn và giới hạn số lượng
+    let olderMessages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    // Xử lý dữ liệu
+    olderMessages = olderMessages.map((msg) => {
+      const updatedMsg = msg.toObject();
+      updatedMsg.sender.avatar = senderAvatar;
+
+      if (msg.isDeleted) {
+        return {
+          _id: msg._id,
+          msg: "Tin nhắn đã được thu hồi",
+          sender: updatedMsg.sender,
+          receiver: msg.receiver,
+          isRead: msg.isRead,
+          readBy: msg.readBy || [],
+          isDeleted: msg.isDeleted,
+          isDeletedBySender: msg.isDeletedBySender,
+          isDeletedByReceiver: msg.isDeletedByReceiver,
+          type: "system",
+          createdAt: msg.createdAt,
+          updatedAt: msg.updatedAt,
+        };
+      }
+      return updatedMsg;
+    });
+
+    // Đảo ngược lại để đúng thứ tự thời gian
+    olderMessages = olderMessages.reverse();
+
+    return res.status(200).json({
+      EM: "Older messages fetched successfully", 
+      EC: 0,
+      DT: olderMessages,
+      hasMore: olderMessages.length === limit // Kiểm tra còn tin nhắn để tải không
+    });
+
+  } catch (error) {
+    console.log("Error in getOlderMessages:", error);
+    return res.status(500).json({
+      EM: "Server error", 
+      EC: 2,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -788,5 +955,6 @@ module.exports = {
   dissolveGroup,
   chatGPTResponse,
   markMessageAsRead,
-  markAllMessagesAsRead
+  markAllMessagesAsRead,
+  getOlderMessages
 };
