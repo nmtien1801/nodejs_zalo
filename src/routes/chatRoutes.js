@@ -47,6 +47,10 @@ const ChatRoutes = (app) => {
   // chatbot AI chatGPT
   app.post("/api/chatgpt", chatController.chatGPTResponse);
 
+  // Đã đọc
+  router.post("/api/mark-read/:messageId", chatController.markMessageAsRead);
+  router.post("/api/mark-all-read/:conversationId", chatController.markAllMessagesAsRead);
+
   return app.use("", router);
 };
 

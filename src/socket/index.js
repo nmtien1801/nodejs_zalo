@@ -3,6 +3,7 @@ const { saveMsg } = require("../controller/chatController");
 const chatService = require("../services/chatService");
 const { setTypingStatus, removeTypingStatus, getTypingUsers } = require("../utils/typingUtils");
 const { keysAsync } = require("../config/redisConfig");
+const Message = require("../models/message");
 
 const onlineUsers = [];
 
@@ -613,6 +614,76 @@ const socketInit = (server) => {
         }
       } catch (error) {
         console.error("Error processing stop typing event:", error);
+      }
+    });
+
+    //Đánh dấu một tin nhắn đã đọc
+    socket.on("MARK_READ", async (data) => {
+      const { messageId, userId, conversationId } = data;
+      
+      try {
+        // Tìm tin nhắn đó
+        const message = await Message.findById(messageId);
+        if (!message) return;
+
+        // Gửi thông báo cho người gửi tin nhắn
+        const senderSocketId = users[message.sender._id]?.socketId;
+        
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("MESSAGE_READ", {
+            messageId,
+            userId,
+            conversationId
+          });
+        }
+        
+        // Nếu là chat nhóm, thông báo cho tất cả thành viên
+        if (message.receiver.members && message.receiver.members.length > 0) {
+          message.receiver.members.forEach(memberId => {
+            if (memberId.toString() !== userId) {
+              const memberSocketId = users[memberId]?.socketId;
+              if (memberSocketId) {
+                io.to(memberSocketId).emit("MESSAGE_READ", {
+                  messageId,
+                  userId,
+                  conversationId
+                });
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error in MARK_READ socket event:", error);
+      }
+    });
+
+    // Đánh dấu tất cả tin nhắn là đã đọc
+    socket.on("MARK_ALL_READ", async (data) => {
+      const { userId, conversationId } = data;
+      
+      try {
+        // Tìm người có tin nhắn chưa đọc trong cuộc hội thoại
+        const unreadMessages = await Message.find({
+          "receiver._id": conversationId,
+          "sender._id": { $ne: userId },
+          readBy: { $ne: userId }
+        });
+        
+        // Gửi thông báo đến người gửi các tin nhắn
+        const senderIds = [...new Set(unreadMessages.map(msg => msg.sender._id.toString()))];
+        
+        senderIds.forEach(senderId => {
+          const senderSocketId = users[senderId]?.socketId;
+          if (senderSocketId) {
+            io.to(senderSocketId).emit("ALL_MESSAGES_READ", {
+              userId,
+              conversationId
+            });
+          }
+        });
+        
+      } catch (error) {
+        console.error("Error in MARK_ALL_READ socket event:", error);
       }
     });
 

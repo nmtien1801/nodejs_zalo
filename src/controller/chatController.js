@@ -93,6 +93,7 @@ const saveMsg = async (data) => {
         members: data.receiver.members
       },
       isRead: false,
+      readBy: [data.sender._id],
       isDeleted: false,
       isDeletedBySender: false,
       isDeletedByReceiver: false,
@@ -174,6 +175,7 @@ const getMsg = async (req, res) => {
             sender: updatedMsg.sender,
             receiver: msg.receiver,
             isRead: msg.isRead,
+            readBy: msg.readBy || [],
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
             isDeletedByReceiver: msg.isDeletedByReceiver,
@@ -219,6 +221,7 @@ const getMsg = async (req, res) => {
             sender: updatedMsg.sender,
             receiver: msg.receiver,
             isRead: msg.isRead,
+            readBy: msg.readBy || [],
             isDeleted: msg.isDeleted,
             isDeletedBySender: msg.isDeletedBySender,
             isDeletedByReceiver: msg.isDeletedByReceiver,
@@ -657,6 +660,115 @@ const chatGPTResponse = async (req, res) => {
   }
 };
 
+// Đánh dấu một tin nhắn là đã đọc
+const markMessageAsRead = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { userId } = req.body;
+
+    if (!messageId) {
+      return res.status(400).json({
+        EM: "Message ID is required",
+        EC: 1,
+        DT: "",
+      });
+    }
+
+    // Tìm tin nhắn theo ID
+    const message = await Message.findById(messageId);
+    
+    if (!message) {
+      return res.status(404).json({
+        EM: "Message not found",
+        EC: 1,
+        DT: "",
+      });
+    }
+    
+    // Nếu người dùng không phải người gửi và chưa được đánh dấu là đã đọc
+    if (message.sender._id.toString() !== userId.toString() && 
+        !message.readBy.includes(userId)) {
+      
+      // Thêm người dùng vào danh sách đã đọc
+      message.readBy.push(userId);
+      
+      // Nếu là chat 1-1, đánh dấu là đã đọc
+      if (!message.receiver.members || message.receiver.members.length <= 0) {
+        message.isRead = true;
+      } 
+      // Nếu là chat nhóm, kiểm tra xem tất cả thành viên đã đọc chưa
+      else {
+        const membersExceptSender = message.receiver.members.filter(
+          m => m.toString() !== message.sender._id.toString()
+        );
+        
+        if (message.readBy.length >= membersExceptSender.length) {
+          message.isRead = true;
+        }
+      }
+      
+      await message.save();
+    }
+    
+    return res.status(200).json({
+      EM: "Message marked as read",
+      EC: 0,
+      DT: message,
+    });
+  } catch (error) {
+    console.error("Error in markMessageAsRead:", error);
+    return res.status(500).json({
+      EM: "Error marking message as read",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
+// Đánh dấu tất cả tin nhắn trong cuộc trò chuyện là đã đọc
+const markAllMessagesAsRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { userId } = req.body;
+
+    // Tìm và cập nhật tất cả tin nhắn chưa đọc
+    const result = await Message.updateMany(
+      {
+        "receiver._id": conversationId,
+        "sender._id": { $ne: userId.toString() }
+      },
+      {
+        $addToSet: { readBy: userId }
+      }
+    );
+
+    // Cũng đánh dấu isRead = true cho các tin nhắn 1-1
+    await Message.updateMany(
+      {
+        "receiver._id": conversationId,
+        "sender._id": { $ne: userId.toString() },
+        "receiver.members": { $exists: false }
+      },
+      {
+        isRead: true
+      }
+    );
+
+    return res.status(200).json({
+      EM: "All messages marked as read",
+      EC: 0,
+      DT: { updatedCount: result.modifiedCount },
+    });
+  } catch (error) {
+    console.error("Error in markAllMessagesAsRead:", error);
+    return res.status(500).json({
+      EM: "Error marking all messages as read",
+      EC: -1,
+      DT: "",
+    });
+  }
+};
+
 module.exports = {
   getConversations,
   getConversationsByMember,
@@ -675,4 +787,6 @@ module.exports = {
   removeMemberFromGroup,
   dissolveGroup,
   chatGPTResponse,
+  markMessageAsRead,
+  markAllMessagesAsRead
 };
