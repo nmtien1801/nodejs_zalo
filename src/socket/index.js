@@ -418,7 +418,7 @@ const socketInit = (server) => {
       if (!response) {
         io.emit("RES_UPDATE_AVATAR");
       } else {
-        const groupMembers = response.members || [];
+        const groupMembers = response.receiver.members || [];
         groupMembers.forEach((memberId) => {
           const member = users[memberId];
           if (member && member.socketId) {
