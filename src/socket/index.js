@@ -52,7 +52,6 @@ const socketInit = (server) => {
 
     // CHAT MESSAGE
     socket.on("SEND_MSG", async (msg) => {
-      console.log("MSG FROM FRONTEND", msg);
       const isSaved = await saveMsg(msg);
 
       // Dừng typing sau khi tin nhắn đc gửi

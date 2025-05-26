@@ -188,7 +188,7 @@ const getReactionsByMessageId = async (messageId) => {
 
     if (!mongoose.Types.ObjectId.isValid(messageId)) {
       return {
-        EM: "Invalid messageId", // error message
+        EM: "Invalid messageId getReactionsByMessageId", // error message
         EC: 1, // error code
         DT: "", // no data
       };
@@ -227,7 +227,7 @@ const handleReaction = async (messageId, userId, emoji) => {
 
     if (!mongoose.Types.ObjectId.isValid(messageId)) {
       return {
-        EM: "Invalid messageId", // error message
+        EM: "Invalid messageId handleReaction", // error message
         EC: 1, // error code
         DT: "", // no data
       };
