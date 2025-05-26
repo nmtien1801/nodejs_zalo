@@ -1,10 +1,11 @@
 require("dotenv").config();
 const RoomChat = require("../models/roomChat");
+const Conversation = require("../models/conversation");
 
 const uploadProfile = async (data) => {
   try {
-    console.log('data ',data);
-    
+    console.log("data ", data);
+
     let user = await RoomChat.findOne({ phone: data.phone });
     if (user) {
       user.avatar = data.avatar;
@@ -12,6 +13,18 @@ const uploadProfile = async (data) => {
       user.dob = data.dob;
       user.gender = data.gender;
       user.save();
+    }
+
+    let conversation = await Conversation.find({
+      "receiver._id": data.userId,
+    });
+    
+    if (conversation && conversation.length > 0) {
+      for (let item of conversation) {
+        item.receiver.username = data.username;
+
+        await item.save();
+      }
     }
 
     return {
