@@ -42,9 +42,6 @@ FriendShipRoutes(app);
 socketInit(server);
 
 // =================================================================
-app.get("/api/ping", (req, res) => {
-  res.send("PONG từ backend 🎯");
-});
 
 app.use((req, res) => {
   return res.send("404 not found");
