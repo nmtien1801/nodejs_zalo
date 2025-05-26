@@ -15,10 +15,19 @@ const AuthRoutes = (app) => {
   router.post("/api/login", authController.handleLogin);
   router.post("/api/register", authController.handleRegister);
 
+  //Route QR
+  app.post("/api/generate-qr-login", authController.generateQRLogin);
+  app.post("/api/verify-qr-login", authController.verifyQRLogin);
+  app.get("/api/check-qr-status/:sessionId", authController.checkQRStatus);
+
   app.post("/api/send-code", authController.sendCode);
   app.post("/api/reset-password", authController.resetPassword);
   app.post("/api/changePassword", authController.changePassword);
   app.post("/api/verifyEmail", authController.verifyEmail);
+
+  app.get('/api/ping', (req, res) => {
+    res.json({ message: 'pong' });
+  });
 
   // router.post("/api/logout", authController.handleLogout);
   router.get("/api/account", authController.getUserAccount);

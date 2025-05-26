@@ -306,6 +306,90 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+// Tạo QR Login Code cho web client
+const generateQRLogin = async (req, res) => {
+  try {
+    const result = await authService.generateQRLoginToken();
+    
+    return res.status(200).json({
+      EM: result.EM,
+      EC: result.EC,
+      DT: result.DT
+    });
+  } catch (error) {
+    console.error("Error generating QR login:", error);
+    return res.status(500).json({
+      EM: "Error from server",
+      EC: -1,
+      DT: ""
+    });
+  }
+};
+
+// Xác nhận QR code từ ứng dụng di động
+const verifyQRLogin = async (req, res) => {
+  try {
+    const { qrToken, userId } = req.body;
+    const deviceInfo = {
+      device: req.headers['user-agent'],
+      ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    };
+    
+    if (!qrToken || !userId) {
+      return res.status(400).json({
+        EM: "Missing required parameters",
+        EC: 1,
+        DT: ""
+      });
+    }
+    
+    const result = await authService.verifyQRLogin(qrToken, userId, deviceInfo);
+    
+    return res.status(200).json({
+      EM: result.EM,
+      EC: result.EC,
+      DT: result.DT
+    });
+  } catch (error) {
+    console.error("Error verifying QR login:", error);
+    return res.status(500).json({
+      EM: "Error from server",
+      EC: -1,
+      DT: ""
+    });
+  }
+};
+
+// Kiểm tra trạng thái của phiên QR để web client polling
+const checkQRStatus = async (req, res) => {
+
+  try {
+    const { sessionId } = req.params;
+    
+    if (!sessionId) {
+      return res.status(400).json({
+        EM: "Session ID is required",
+        EC: 1,
+        DT: ""
+      });
+    }
+    
+    const result = await authService.checkQRSessionStatus(sessionId);
+    
+    return res.status(200).json({
+      EM: result.EM,
+      EC: result.EC,
+      DT: result.DT
+    });
+  } catch (error) {
+    console.error("Error checking QR status:", error);
+    return res.status(500).json({
+      EM: "Error from server",
+      EC: -1,
+      DT: ""
+    });
+  }
+};
 
 module.exports = {
   handleLogin,
@@ -318,4 +402,7 @@ module.exports = {
   changePassword,
   verifyEmail,
   getUserByPhone,
+  generateQRLogin,
+  verifyQRLogin,
+  checkQRStatus
 };

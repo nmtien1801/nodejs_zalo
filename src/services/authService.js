@@ -8,6 +8,239 @@ const RoomChat = require("../models/roomChat");
 const Session = require("../models/session");
 const Conversation = require("../models/conversation");
 
+//Thư viện cho khởi tạo QR code
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
+
+//Object temp lưu trữ QR cần xác thực
+const pendingQRSessions = {};
+
+//Tạo QR Login
+const generateQRLoginToken = async () => {
+  try {
+    // Tạo một mã QR session duy nhất
+    const qrSessionId = uuidv4();
+    
+    // Tạo token cho QR code với thời gian hết hạn ngắn (2 phút)
+    const qrToken = jwt.sign(
+      { sessionId: qrSessionId, type: 'qr_login' }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '120s' }
+    );
+    
+    // Lưu session vào bộ nhớ tạm với trạng thái chờ
+    pendingQRSessions[qrSessionId] = {
+      status: 'pending', // pending, confirmed, expired
+      createdAt: new Date(),
+      user: null,
+      deviceInfo: null
+    };
+
+    // Thiết lập thời gian hết hạn cho session (2 phút)
+    setTimeout(() => {
+      if (pendingQRSessions[qrSessionId] && 
+          pendingQRSessions[qrSessionId].status === 'pending') {
+        pendingQRSessions[qrSessionId].status = 'expired';
+      }
+    }, 120000);
+
+    return {
+      EM: "QR login token generated successfully",
+      EC: 0,
+      DT: {
+        qrToken,
+        sessionId: qrSessionId
+      }
+    };
+  } catch (error) {
+    console.log("Error generating QR login token:", error);
+    return {
+      EM: "Error generating QR login token",
+      EC: -2,
+      DT: ""
+    };
+  }
+};
+
+//Xác thực QR Code
+const verifyQRLogin = async (qrToken, userId, deviceInfo) => {
+  try {
+    // Xác thực token QR
+    const decoded = jwt.verify(qrToken, process.env.JWT_SECRET);
+    
+    if (!decoded || !decoded.sessionId || decoded.type !== 'qr_login') {
+      return {
+        EM: "Invalid QR token",
+        EC: 1,
+        DT: ""
+      };
+    }
+
+    const qrSessionId = decoded.sessionId;
+    const session = pendingQRSessions[qrSessionId];
+
+    // Kiểm tra xem session có tồn tại và còn hiệu lực không
+    if (!session) {
+      return {
+        EM: "QR session not found",
+        EC: 1,
+        DT: ""
+      };
+    }
+
+    if (session.status === 'expired') {
+      return {
+        EM: "QR session has expired",
+        EC: 1,
+        DT: ""
+      };
+    }
+
+    if (session.status === 'confirmed') {
+      return {
+        EM: "QR session already used",
+        EC: 1,
+        DT: ""
+      };
+    }
+
+    // Tìm user từ userId
+    const user = await RoomChat.findById(userId);
+    if (!user) {
+      return {
+        EM: "User not found",
+        EC: 1,
+        DT: ""
+      };
+    }
+
+    // Lưu thông tin user và thiết bị vào session
+    pendingQRSessions[qrSessionId].status = 'confirmed';
+    pendingQRSessions[qrSessionId].user = user;
+    pendingQRSessions[qrSessionId].deviceInfo = deviceInfo || {
+      device: "Unknown", 
+      ip: "Unknown"
+    };
+
+    console.log("QR Sessions:", pendingQRSessions);
+
+    console.log("Data:",{
+      EM: "QR login verified successfully",
+      EC: 0,
+      DT: {
+        sessionId: qrSessionId
+      }
+    });
+
+    return {
+      EM: "QR login verified successfully",
+      EC: 0,
+      DT: {
+        sessionId: qrSessionId
+      }
+    };
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return {
+        EM: "QR token has expired",
+        EC: 1,
+        DT: ""
+      };
+    }
+    
+    console.log("Error verifying QR login:", error);
+    return {
+      EM: "Error verifying QR login",
+      EC: -2,
+      DT: ""
+    };
+  }
+};
+
+//Xác thực QR
+const checkQRSessionStatus = async (sessionId) => {
+  try {
+    const session = pendingQRSessions[sessionId];
+    
+    if (!session) {
+      return {
+        EM: "QR session not found",
+        EC: 1,
+        DT: ""
+      };
+    }
+
+    // Nếu session đã được xác nhận, tạo token đăng nhập
+    if (session.status === 'confirmed' && session.user) {
+      const user = session.user;
+      const deviceInfo = session.deviceInfo || {};
+
+      // Tạo payload và token như đăng nhập thông thường
+      let payload = {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        phone: user.phone,
+        roleID: user.roleID,
+        gender: user.gender,
+        dob: user.dob,
+        avatar: user.avatar,
+      };
+      
+      let token = createJwt(payload);
+      let tokenRefresh = createJwt_refreshToken(payload);
+
+      // Tạo session với refreshToken
+      let newSession = new Session({
+        roomChatID: user._id,
+        access_Token: token,
+        refresh_Token: tokenRefresh,
+        ip_device: deviceInfo.ip || "QR Login",
+        user_agent: deviceInfo.device || "QR Login Device",
+      });
+
+      await newSession.save();
+
+      // Xóa khỏi pendingQRSessions sau khi đã xử lý
+      delete pendingQRSessions[sessionId];
+
+      return {
+        EM: "QR login successful",
+        EC: 0,
+        DT: {
+          _id: user._id,
+          access_Token: token,
+          refresh_Token: tokenRefresh,
+          email: user.email,
+          phone: user.phone,
+          username: user.username,
+          roleID: user.roleID,
+          gender: user.gender,
+          dob: user.dob,
+          avatar: user.avatar,
+          status: session.status
+        }
+      };
+    }
+
+    // Nếu chưa được xác nhận, trả về trạng thái hiện tại
+    return {
+      EM: `QR session status: ${session.status}`,
+      EC: 0,
+      DT: {
+        status: session.status
+      }
+    };
+  } catch (error) {
+    console.log("Error checking QR session status:", error);
+    return {
+      EM: "Error checking QR session status",
+      EC: -2,
+      DT: ""
+    };
+  }
+};
+
 const checkPhoneExists = async (userPhone) => {
   let phone = await RoomChat.findOne({ phone: userPhone });
   if (phone) {
@@ -353,4 +586,7 @@ module.exports = {
   changePassword,
   findUserByPhone,
   updateAvatar,
+  generateQRLoginToken,
+  verifyQRLogin,
+  checkQRSessionStatus
 };

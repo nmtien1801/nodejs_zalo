@@ -56,6 +56,10 @@ const nonSecurePaths = [
   "/api/refreshToken",
   "/api/send-code",
   "/api/reset-password",
+  "/api/generate-qr-login",
+  "/api/verify-qr-login",
+  "/api/check-qr-status",
+  "/api/ping"
 ]; // kh check middleware url (1)
 
 // token từ BE sẽ lưu vào header bên FE
@@ -71,7 +75,7 @@ const extractToken = (req) => {
 
 // middleware jwt check user đã đăng nhập chưa
 const checkUserJwt = async (req, res, next) => {
-  if (nonSecurePaths.includes(req.path)) return next(); // kh check middleware url (2)
+  if (nonSecurePaths.some(path => req.path === path || req.path.startsWith(`${path}/`))) return next(); // kh check middleware url (2)
   let tokenFromHeader = extractToken(req);
 
   if (tokenFromHeader) {

@@ -42,11 +42,16 @@ FriendShipRoutes(app);
 socketInit(server);
 
 // =================================================================
+app.get("/api/ping", (req, res) => {
+  res.send("PONG từ backend 🎯");
+});
+
 app.use((req, res) => {
   return res.send("404 not found");
 });
 
 const PORT = process.env.PORT || 8080;
+
 server.listen(PORT, () => {
   console.log(`>>>backend is running on the port ${PORT}`);
 
